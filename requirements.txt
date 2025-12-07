@@ -1,0 +1,48 @@
+Django
+psycopg2-binary
+python-dotenv
+djangorestframework
+django-cors-headers
+django-redis
+celery
+django-celery-beat
+django-celery-results
+redis
+whitenoise
+django-storages
+boto3
+coloredlogs
+requests
+gunicorn
+Pillow #for image processing
+django-jazzmin #for admin panel dashboard
+PyJWT #for JWT token generation
+androguard
+
+# Development and testing dependencies
+pre-commit
+types-redis
+types-requests
+django-stubs
+black
+
+# Celery dependencies
+kombu
+vine
+click-didyoumean
+click-plugins
+click-repl
+prompt-toolkit
+
+# Linting dependencies
+pylint
+pylint-django
+djangorestframework-stubs
+autoflake
+
+# Dodo dependencies
+dodopayments
+dodopayments[webhooks]
+
+# Sentry for logs
+sentry-sdk[django]

@@ -1,0 +1,32 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install black pylint pylint-django python-dotenv djangorestframework celery autoflake
+    - name: Run Black
+      run: black . --check --line-length=1000 --skip-string-normalization
+    - name: Run Autoflake
+      run: autoflake --check --remove-all-unused-imports --recursive --exclude=__init__.py .
+    - name: Run Pylint
+      run: pylint --disable=all --enable=import-error,refactoring,unused-import,duplicate-import,import-outside-toplevel,wrong-import-order,wrong-import-position,missing-import,reimported,unused-wildcard-import --fail-under=8.0 --rcfile=.pylintrc .
+
+    - name: Check for security vulnerabilities
+      run: |
+        pip install safety
+        safety check

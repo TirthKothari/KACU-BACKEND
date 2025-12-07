@@ -1,0 +1,69 @@
+[tool.poetry]
+name = "kacu"
+version = "0.1.0"
+description = "Django backend for Kacu website"
+authors = ["Your Name <you@example.com>"]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.9"
+Django = "*"
+psycopg2-binary = "*"
+python-dotenv = "*"
+djangorestframework = "*"
+django-cors-headers = "*"
+django-redis = "*"
+redis = "*"
+whitenoise = "*"
+django-storages = "*"
+boto3 = "*"
+coloredlogs = "*"
+requests = "*"
+gunicorn = "*"
+Pillow = "*"
+django-jazzmin = "*"
+PyJWT = "*"
+
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "*"
+types-redis = "*"
+types-requests = "*"
+django-stubs = "*"
+black = "*"
+pylint = "*"
+pylint-django = "*"
+djangorestframework-stubs = "*"
+autoflake = "*"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+  | migrations
+)/
+'''
+
+[tool.pylint.MASTER]
+load-plugins = "pylint_django"
+django-settings-module = "api.settings"
+
+[tool.pylint.FORMAT]
+max-line-length = 88
+
+[tool.isort]
+profile = "black"

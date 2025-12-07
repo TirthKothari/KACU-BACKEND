@@ -1,0 +1,57 @@
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+    -   id: trailing-whitespace
+    -   id: end-of-file-fixer
+    -   id: check-yaml
+    -   id: check-added-large-files
+        args: ['--maxkb=5000']
+    -   id: debug-statements
+
+-   repo: https://github.com/psf/black
+    rev: 24.2.0
+    hooks:
+    -   id: black
+        args: [--line-length=1000, --skip-string-normalization]
+        exclude: ^(venv|\.venv|env|\.env|groundwork)/
+        types: [python]
+        additional_dependencies: [black]
+
+-   repo: https://github.com/PyCQA/autoflake
+    rev: v2.3.1
+    hooks:
+    -   id: autoflake
+        args: [
+            "--remove-all-unused-imports",
+            "--recursive",
+            "--remove-unused-variables",
+            "--in-place",
+            "--exclude=__init__.py"
+        ]
+        exclude: ^(venv|\.venv|env|\.env|groundwork)/
+        language_version: python3.13
+        types: [python]
+        additional_dependencies: [autoflake]
+
+-   repo: https://github.com/PyCQA/pylint
+    rev: v3.0.3
+    hooks:
+    -   id: pylint
+        args: [
+            "--disable=all",
+            "--enable=import-error,refactoring,unused-import,duplicate-import,import-outside-toplevel,wrong-import-order,wrong-import-position,missing-import,reimported,unused-wildcard-import",
+            "--fail-under=8.0",
+            "--rcfile=.pylintrc"
+        ]
+        exclude: ^(venv|\.venv|env|\.env|groundwork)/
+        language_version: python3.13
+        types: [python]
+        additional_dependencies:
+          - pylint-django
+          - django-stubs
+          - djangorestframework-stubs
+          - python-dotenv
+          - djangorestframework
+          - celery
+          - django
