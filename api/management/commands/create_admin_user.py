@@ -1,9 +1,9 @@
-from api.logging import get_logger
+import logging
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 
-logger = get_logger(__name__)
+logger = logging.getLogger(settings.LOGGER)
 
 
 class Command(BaseCommand):
