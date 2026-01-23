@@ -1,0 +1,19 @@
+name: Deploy to Render
+
+on:
+  workflow_run:
+    workflows: ["Code Quality"] # Must match the 'name:' in your first file
+    types:
+      - completed
+    branches:
+      - dev
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # This condition ensures we only deploy if the linting was SUCCESSFUL
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Trigger Render Deploy Hook
+        run: |
+          curl -f -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"

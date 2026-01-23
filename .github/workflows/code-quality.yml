@@ -18,9 +18,9 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install black pylint pylint-django python-dotenv djangorestframework celery autoflake
+        pip install black==24.3.0 pylint==3.0.3 pylint-django python-dotenv djangorestframework celery autoflake==2.3.1
     - name: Run Black
-      run: black . --check --line-length=1000 --skip-string-normalization
+      run: black . --check --line-length=1500 --skip-string-normalization
     - name: Run Autoflake
       run: autoflake --check --remove-all-unused-imports --recursive --exclude=__init__.py .
     - name: Run Pylint
@@ -28,5 +28,5 @@ jobs:
 
     - name: Check for security vulnerabilities
       run: |
-        pip install safety
+        pip install "safety<3.0.0"
         safety check

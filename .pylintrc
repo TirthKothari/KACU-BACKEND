@@ -11,7 +11,6 @@ enable=import-error,
        import-outside-toplevel,
        wrong-import-order,
        wrong-import-position,
-       import-error,
        missing-import,
        reimported,
        unused-wildcard-import
@@ -29,8 +28,6 @@ django-settings-module=api.settings
 good-names=i,j,k,ex,Run,_,id,fp
 
 [IMPORTS]
-# Analyse import fallback blocks. This can be used to support both Python 2 and 3 compatible code, which means that the block might have code that exists only in one or another interpreter, leading to false positives when analysed.
-analyse-fallback-blocks=no
 
 # Allow wildcard imports from modules that define __all__.
 allow-wildcard-with-all=no
@@ -41,8 +38,6 @@ allow-wildcard-import=no
 # Deprecated modules which should not be used, separated by a comma.
 deprecated-modules=regsub,TERMIOS,Bastion,rexec
 
-# Create a graph of every (i.e. internal and external) dependencies in the given file (report RP0402 must not be disabled).
-ext-import-graph=
 
 # Create a graph of external dependencies in the given file (report RP0402 must not be disabled).
 ext-import-graph=
@@ -55,24 +50,3 @@ known-third-party=enchant
 
 # Analyse import fallback blocks. This can be used to support both Python 2 and 3 compatible code, which means that the block might have code that exists only in one or another interpreter, leading to false positives when analysed.
 analyse-fallback-blocks=no
-
-# Allow wildcard imports from modules that define __all__.
-allow-wildcard-with-all=no
-
-# Allow any wildcard imports.
-allow-wildcard-import=no
-
-# Deprecated modules which should not be used, separated by a comma.
-deprecated-modules=regsub,TERMIOS,Bastion,rexec
-
-# Create a graph of every (i.e. internal and external) dependencies in the given file (report RP0402 must not be disabled).
-ext-import-graph=
-
-# Create a graph of external dependencies in the given file (report RP0402 must not be disabled).
-ext-import-graph=
-
-# Create a graph of internal dependencies in the given file (report RP0402 must not be disabled).
-int-import-graph=
-
-# Force import order to recognize a module as part of a third party library.
-known-third-party=enchant
