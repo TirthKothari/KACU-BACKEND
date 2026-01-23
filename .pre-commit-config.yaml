@@ -13,7 +13,7 @@ repos:
     rev: 24.2.0
     hooks:
     -   id: black
-        args: [--line-length=1000, --skip-string-normalization]
+        args: [--line-length=1500, --skip-string-normalization]
         exclude: ^(venv|\.venv|env|\.env|groundwork)/
         types: [python]
         additional_dependencies: [black]
