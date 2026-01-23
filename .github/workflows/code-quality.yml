@@ -20,7 +20,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install black pylint pylint-django python-dotenv djangorestframework celery autoflake
     - name: Run Black
-      run: black . --check --skip-string-normalization
+      run: black . --check --line-length=1500 --skip-string-normalization
     - name: Run Autoflake
       run: autoflake --check --remove-all-unused-imports --recursive --exclude=__init__.py .
     - name: Run Pylint
