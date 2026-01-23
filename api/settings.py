@@ -75,12 +75,17 @@ CORS_ALLOW_HEADERS = [
 # Application definition
 
 INSTALLED_APPS = [
+    "rest_framework",
+    "rest_framework.authtoken",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "corsheaders",
+    "api",
+    "storages",
 ]
 
 MIDDLEWARE = [
@@ -173,11 +178,6 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = "static/"
-STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "static"),
-]
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Whitenoise configuration
@@ -211,8 +211,8 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10,
 }
 
-LOGS_DIR = BASE_DIR / "logs"
-os.makedirs(LOGS_DIR, exist_ok=True)
+# LOGS_DIR = BASE_DIR / "logs"
+# os.makedirs(LOGS_DIR, exist_ok=True)
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -247,12 +247,12 @@ LOGGING = {
         },
     },
     "handlers": {
-        "file": {
-            "level": "DEBUG",
-            "class": "logging.FileHandler",
-            "filename": LOGS_DIR / "django.log",  # Use the absolute path that matches our Docker volume
-            "formatter": "verbose",
-        },
+        # "file": {
+        #     "level": "DEBUG",
+        #     "class": "logging.FileHandler",
+        #     "filename": LOGS_DIR / "django.log",  # Use the absolute path that matches our Docker volume
+        #     "formatter": "verbose",
+        # },
         "console": {
             "level": "DEBUG",
             "class": "logging.StreamHandler",
@@ -261,17 +261,17 @@ LOGGING = {
     },
     "loggers": {
         "LOCAL": {
-            "handlers": ["file", "console"],
+            "handlers": ["console"],
             "level": "INFO",
             "propagate": True,
         },
         "STG": {
-            "handlers": ["file", "console", "slack"],
+            "handlers": ["console"],
             "level": "DEBUG",
             "propagate": True,
         },
         "PROD": {
-            "handlers": ["file", "console", "slack"],
+            "handlers": ["console"],
             "level": "DEBUG",
             "propagate": True,
         },
@@ -287,3 +287,35 @@ LOGGING = {
         },
     },
 }
+
+# S3 / Backblaze B2 Configuration
+AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')  # B2 "keyID"
+AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')  # B2 "applicationKey"
+AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
+AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME')  # e.g., 'us-west-004'
+
+# This is the "secret sauce" for Backblaze/Non-AWS S3
+AWS_S3_ENDPOINT_URL = f'https://s3.{AWS_S3_REGION_NAME}.backblazeb2.com'
+
+# IMPORTANT: This allows Django to generate temporary "Signed URLs"
+# so you can view files in a PRIVATE bucket.
+AWS_QUERYSTRING_AUTH = True
+AWS_S3_SIGNATURE_VERSION = 's3v4'
+AWS_S3_FILE_OVERWRITE = False
+
+# Tell Django to use S3 for default file storage (Media)
+STORAGES = {
+    "default": {
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",  # Media goes to B2
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",  # Static stays on Render
+    },
+}
+
+
+# This replaces your old STATIC_URL = "/static/"
+# --- 1. STATIC FILES (WhiteNoise) ---
+STATIC_URL = "static/"
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
