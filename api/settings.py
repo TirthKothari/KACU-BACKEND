@@ -86,7 +86,10 @@ INSTALLED_APPS = [
     "corsheaders",
     "api",
     "storages",
+    "applicant",
 ]
+
+AUTH_USER_MODEL = 'applicant.User'
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -199,7 +202,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 MEDIA_ROOT = 'media/'
 
 REST_FRAMEWORK = {
-    'EXCEPTION_HANDLER': 'api.exception.custom_exception_handler',
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
