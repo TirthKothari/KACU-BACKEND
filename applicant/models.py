@@ -2,7 +2,6 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from .utils import (
     LoanAmountChoices,
-    LoanTypeChoices,
     LoanTermChoices,
     BusinessLocationChoices,
     YearsInBusinessChoices,
@@ -45,7 +44,8 @@ class pre_qualification(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='prequalification_user')
     business_name = models.CharField(max_length=255)
     loan_amount = models.CharField(max_length=255, choices=LoanAmountChoices.choices())
-    loan_type = models.CharField(max_length=255, choices=LoanTypeChoices.choices())
+    # loan_type = models.CharField(max_length=255, choices=LoanTypeChoices.choices())
+    loan_type = models.ForeignKey('loan_type.LoanType', on_delete=models.SET_NULL, null=True, blank=True, related_name='prequalification_loan_type')
     loan_term = models.CharField(max_length=255, choices=LoanTermChoices.choices())
     business_location = models.CharField(max_length=255, choices=BusinessLocationChoices.choices())
     years_in_business = models.CharField(max_length=255, choices=YearsInBusinessChoices.choices())
