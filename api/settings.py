@@ -87,6 +87,7 @@ INSTALLED_APPS = [
     "api",
     "storages",
     "applicant",
+    "loan_type",
 ]
 
 AUTH_USER_MODEL = 'applicant.User'
