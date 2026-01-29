@@ -26,4 +26,5 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("health_api/", HealthCheckView.as_view(), name="health_api"),
     path("api/applicant/", include("applicant.urls")),
+    path("api/loan-types/", include("loan_type.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
