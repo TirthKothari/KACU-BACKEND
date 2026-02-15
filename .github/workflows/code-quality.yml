@@ -29,4 +29,4 @@ jobs:
     - name: Check for security vulnerabilities
       run: |
         pip install safety
-        safety check
+        safety scan
