@@ -46,11 +46,11 @@ DJANGO_SUPER_USER_EMAIL = "info@kacu.ca"
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0", "kacu-frontend.vercel.app", '*', 'kacu-backend.onrender.com']
 
-ALLOWED_ORIGINS = ["http://localhost:*","*","http://127.0.0.1:*", "http://0.0.0.0:*", "https://kacu-frontend.vercel.app", "https://kacu-backend.onrender.com", "http://*", "https://*"]
+ALLOWED_ORIGINS = ["http://localhost:*", "http://127.0.0.1:*", "http://0.0.0.0:*", "https://kacu-frontend.vercel.app", "https://kacu-backend.onrender.com", "http://*", "https://*"]
 
 
 CSRF_TRUSTED_ORIGINS = ALLOWED_ORIGINS
-CORS_ALLOWED_ORIGINS = ALLOWED_ORIGINS
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [
     "DELETE",
