@@ -36,6 +36,12 @@ pylint-django = "*"
 djangorestframework-stubs = "*"
 autoflake = "*"
 
+
+[[tool.poetry.source]]
+name = "safety"
+url = "https://pkgs.safetycli.com/repository/tirth/project/kacu-backend/pypi/simple/"
+priority = "primary"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
