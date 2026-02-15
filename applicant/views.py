@@ -1,7 +1,7 @@
-from rest_framework import status, serializers
+from rest_framework import status, serializers, generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
 from api import settings
@@ -39,7 +39,7 @@ class CreatePrequalification(APIView):
                     # If no user is associated, inform that they already applied
                     if existing_prequalification.user is None:
                         logger.info(f"Email {email} already has a prequalification form with UUID: {existing_prequalification.uuid}")
-                        return Response({'success': False, 'message': 'You have already applied for prequalification', 'form_uuid': str(existing_prequalification.uuid), 'is_qualified': existing_prequalification.is_qualified}, status=status.HTTP_200_OK)
+                        return Response({'success': False, 'message': 'You have already applied for prequalification', 'form_uuid': str(existing_prequalification.uuid)}, status=status.HTTP_200_OK)
                     else:
                         # User already registered and associated
                         logger.warning(f"Email {email} already has a user account associated")
@@ -97,6 +97,10 @@ class UpdatePrequalification(APIView):
             # Check permissions
             self.check_object_permissions(request, prequalification_form)
 
+            if prequalification_form.is_qualified:
+                logger.info(f"Prequalification form {uuid} is already qualified. No updates allowed.")
+                return Response({'success': False, 'message': 'This prequalification form is already qualified and cannot be updated'}, status=status.HTTP_400_BAD_REQUEST)
+
             # Validate and update the form
             serializer = PreQualificationSerializer(prequalification_form, data=request.data)
 
@@ -129,6 +133,18 @@ class UpdatePrequalification(APIView):
         except Exception as e:
             logger.error(f"Error updating prequalification form: {str(e)}", exc_info=True)
             return Response({'success': False, 'message': 'An error occurred while processing your request', 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class GetPrequalification(generics.RetrieveAPIView):
+    """
+    API endpoint to retrieve a prequalification form by UUID.
+    Returns the prequalification form data for authenticated users.
+    """
+
+    queryset = pre_qualification.objects.all()
+    serializer_class = PreQualificationSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'uuid'
 
 
 class ApplicantUserRegistration(APIView):
