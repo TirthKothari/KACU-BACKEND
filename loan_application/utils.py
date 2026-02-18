@@ -24,3 +24,17 @@ class LoanApplicationStep(enum.Enum):
     @classmethod
     def choices(cls):
         return [(key.value, key.name) for key in cls]
+
+
+class DocumentType(enum.Enum):
+    BUSINESS_REGISTRATION = "business_registration"
+    TAX_RETURN = "tax_return"
+    BANK_STATEMENT = "bank_statement"
+    PAY_STUBS = "pay_stubs"
+    FINANCIAL_STATEMENTS = "financial_statements"
+    OTHER = "other"
+    PROOF_OF_OWNERSHIP = "proof_of_ownership"
+
+    @classmethod
+    def choices(cls):
+        return [(key.value, key.name) for key in cls]

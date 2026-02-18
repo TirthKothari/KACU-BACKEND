@@ -1,7 +1,7 @@
 import uuid
 from django.db import models
 from applicant.models import User
-from .utils import LoanApplicationStatus, LoanApplicationStep
+from .utils import LoanApplicationStatus, LoanApplicationStep, DocumentType
 from loan_type.models import LoanType
 
 # Create your models here.
@@ -16,6 +16,9 @@ class LoanApplication(models.Model):
     submitted_at = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user.first_name} {self.user.last_name} - {self.loan_application_uuid}"
 
 
 class BusinessInformation(models.Model):
@@ -43,7 +46,7 @@ class BusinessInformation(models.Model):
     business_number = models.CharField(max_length=100)
     business_estimated_start_date = models.DateField()
     business_province_of_incorporation = models.CharField(max_length=100)
-    business_average_gross_monthly_sales = models.DecimalField(max_digits=15, decimal_places=2)
+    business_average_gross_monthly_sales = models.DecimalField(max_digits=40, decimal_places=10)
     # other fields
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -52,15 +55,87 @@ class BusinessInformation(models.Model):
         return self.business_legal_name
 
 
+LENDER_INFORMATION_FORMAT = '''
+[
+    {
+        "lender_name": "string",
+        "balance": "decimal",
+    }
+]
+'''
+
+
 class BusinessFundingInformation(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     loan_application = models.OneToOneField(LoanApplication, on_delete=models.CASCADE)
     loan_application_uuid = models.UUIDField(unique=True)
     # section 4 Business Funding Information
-    loan_amount_requested = models.DecimalField(max_digits=10, decimal_places=2)
+    loan_amount_requested = models.DecimalField(max_digits=40, decimal_places=10)
     loan_purpose = models.TextField()
     loan_term_requested = models.CharField(max_length=100)
     overdraft_protection = models.BooleanField(default=False)
-    overdraft_protection_limit = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    overdraft_protection_limit = models.DecimalField(max_digits=40, decimal_places=10, blank=True, null=True)
     business_existing_loan = models.BooleanField(default=False)
-    business_lender_details = models.JSONField(blank=True, null=True)
+    business_lender_details = models.JSONField(blank=True, null=True, help_text=LENDER_INFORMATION_FORMAT)
+
+    # other fields
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.loan_application.user.first_name} {self.loan_application.user.last_name} - {self.loan_amount_requested}"
+
+
+class BusinessOwnerInformation(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    loan_application = models.OneToOneField(LoanApplication, on_delete=models.CASCADE)
+    loan_application_uuid = models.UUIDField()
+    # section 5 Business Owner Information
+    owner_first_name = models.CharField(max_length=100)
+    owner_last_name = models.CharField(max_length=100)
+    owner_email = models.EmailField()
+    owner_phone_number = models.CharField(max_length=20)
+    owner_date_of_birth = models.DateField()
+    owner_ssn = models.CharField(max_length=11)
+    owner_address = models.TextField()
+    owner_city = models.CharField(max_length=100)
+    owner_state = models.CharField(max_length=100)
+    owner_zip_code = models.CharField(max_length=20)
+    owner_percentage_of_ownership = models.DecimalField(max_digits=5, decimal_places=2)
+    owner_credit_score = models.IntegerField()
+    # other fields
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.owner_first_name} {self.owner_last_name}"
+
+
+class TermsAndConditions(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    loan_application = models.OneToOneField(LoanApplication, on_delete=models.CASCADE)
+    loan_application_uuid = models.UUIDField(unique=True)
+    # section 6 Terms and Conditions
+    signature_name = models.CharField(max_length=255)
+    signature_image = models.ImageField(upload_to='signatures/')
+    terms_accepted = models.BooleanField(default=False)
+    accepted_at = models.DateTimeField(blank=True, null=True)
+    # other fields
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.loan_application.user.first_name} {self.loan_application.user.last_name} - Terms Accepted"
+
+
+class LoanApplicationDocument(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    loan_application = models.ForeignKey(LoanApplication, on_delete=models.CASCADE)
+    loan_application_uuid = models.UUIDField(unique=True)
+    document_name = models.CharField(max_length=255, choices=DocumentType.choices())
+    document_file = models.FileField(upload_to='loan_documents/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.document_name} - {self.loan_application.user.first_name} {self.loan_application.user.last_name}"
