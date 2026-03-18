@@ -69,6 +69,7 @@ class BusinessInformation(models.Model):
     # other fields
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='business_information_created_by')
 
     def __str__(self):
         return self.business_legal_name
@@ -100,6 +101,7 @@ class BusinessFundingInformation(models.Model):
     # other fields
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='business_funding_information_created_by')
 
     def __str__(self):
         return f"{self.loan_application.user.first_name} {self.loan_application.user.last_name} - {self.loan_amount_requested}"
@@ -136,6 +138,7 @@ class BusinessOwnerInformation(models.Model):
     # other fields
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='business_owner_information_created_by')
 
     class Meta:
         unique_together = ('loan_application', 'owner_email')
@@ -170,6 +173,7 @@ class LoanApplicationDocument(models.Model):
     document_file = models.FileField(upload_to='loan_documents/')
     uploaded_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='loan_application_document_created_by')
 
     class Meta:
         unique_together = ('loan_application', 'document_name')

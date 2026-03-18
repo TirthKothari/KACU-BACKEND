@@ -135,8 +135,8 @@ class IsAgent(BaseRolePermission):
                 self.message = "You can only access data of applicants assigned to you."
                 return False
 
-            # Allow agents to view unassigned objects (for assignment purposes)
-            return True
+            self.message = "You can only access data of applicants assigned to you."
+            return False
 
         except Exception as e:
             logger.error(f"Error in IsAgent object permission check: {str(e)}")
@@ -169,10 +169,12 @@ class IsPartner(BaseRolePermission):
                     return False
                 return True
 
-            # Check if object has a reference code matching partner's reference code
-            if hasattr(obj, 'refernce_code') and obj.refernce_code:
-                if obj.refernce_code == request.user.reference_code:
+            # If obj has a user with an associated partner
+            if hasattr(obj, 'user') and obj.user and hasattr(obj.user, 'partner'):
+                if obj.user.partner and obj.user.partner.id == request.user.id:
                     return True
+                self.message = "You can only access data of applicants referred by you."
+                return False
 
             self.message = "You can only access data of applicants referred by you."
             return False
@@ -261,8 +263,8 @@ class IsAdminOrAgent(BaseRolePermission):
                     self.message = "You can only access data of applicants assigned to you."
                     return False
 
-                # Allow agents to view unassigned objects
-                return True
+                self.message = "You can only access data of applicants assigned to you."
+                return False
 
             return False
 
@@ -301,9 +303,12 @@ class IsAdminOrPartner(BaseRolePermission):
                     self.message = "You can only access data of applicants referred by you."
                     return False
 
-                if hasattr(obj, 'refernce_code') and obj.refernce_code:
-                    if obj.refernce_code == request.user.reference_code:
+                # If obj has a user with an associated partner
+                if hasattr(obj, 'user') and obj.user and hasattr(obj.user, 'partner'):
+                    if obj.user.partner and obj.user.partner.id == request.user.id:
                         return True
+                    self.message = "You can only access data of applicants referred by you."
+                    return False
 
                 self.message = "You can only access data of applicants referred by you."
                 return False
@@ -312,6 +317,63 @@ class IsAdminOrPartner(BaseRolePermission):
 
         except Exception as e:
             logger.error(f"Error in IsAdminOrPartner object permission check: {str(e)}")
+            self.message = "Permission verification failed."
+            return False
+
+
+class IsApplicantOrPartner(BaseRolePermission):
+    """
+    Permission class that allows access to applicant or partner users.
+    Useful for views where both applicants and partners can perform actions.
+    """
+
+    allowed_roles = ['APPLICANT', 'PARTNER']
+    message = "Only applicants or partners can perform this action."
+
+    def has_object_permission(self, request, view, obj):
+        """
+        Applicants can access their own data, partners can access their referred applicants.
+        """
+        try:
+            if not super().has_object_permission(request, view, obj):
+                return False
+
+            # Applicants can only access their own data
+            if request.user.role == 'APPLICANT':
+                if hasattr(obj, 'user') and obj.user:
+                    if obj.user.id != request.user.id:
+                        self.message = "You can only access your own data."
+                        return False
+                    return True
+
+                if hasattr(obj, 'id') and obj.id == request.user.id:
+                    return True
+
+                self.message = "Access denied to this resource."
+                return False
+
+            # Partners can access their referred applicants
+            if request.user.role == 'PARTNER':
+                if hasattr(obj, 'partner') and obj.partner:
+                    if obj.partner.id == request.user.id:
+                        return True
+                    self.message = "You can only access data of applicants referred by you."
+                    return False
+
+                # If obj has a user with an associated partner
+                if hasattr(obj, 'user') and obj.user and hasattr(obj.user, 'partner'):
+                    if obj.user.partner and obj.user.partner.id == request.user.id:
+                        return True
+                    self.message = "You can only access data of applicants referred by you."
+                    return False
+
+                self.message = "You can only access data of applicants referred by you."
+                return False
+
+            return False
+
+        except Exception as e:
+            logger.error(f"Error in IsApplicantOrPartner object permission check: {str(e)}")
             self.message = "Permission verification failed."
             return False
 

@@ -37,7 +37,7 @@ class LoanApplicationSerializer(serializers.ModelSerializer):
             'created_at',
             'updated_at',
         ]
-        read_only_fields = ['id', 'user', 'created_at', 'updated_at', 'is_complete', 'completion_percentage']
+        read_only_fields = ['id', 'user', 'loan_application_uuid', 'created_at', 'updated_at', 'is_complete', 'completion_percentage']
 
     def validate(self, data):
         """Prevent multiple pending applications for the same loan type per user."""
@@ -127,8 +127,9 @@ class BusinessInformationSerializer(serializers.ModelSerializer):
             # Other fields
             'created_at',
             'updated_at',
+            'created_by',
         ]
-        read_only_fields = ['id', 'user', 'loan_application', 'business_uuid', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'user', 'loan_application', 'loan_application_uuid', 'business_uuid', 'created_at', 'updated_at', 'created_by']
 
     def validate_business_average_gross_monthly_sales(self, value):
         """Validate that business average gross monthly sales is positive"""
@@ -175,8 +176,9 @@ class BusinessFundingInformationSerializer(serializers.ModelSerializer):
             # Other fields
             'created_at',
             'updated_at',
+            'created_by',
         ]
-        read_only_fields = ['id', 'user', 'loan_application', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'user', 'loan_application', 'loan_application_uuid', 'created_at', 'updated_at', 'created_by']
 
     def validate_loan_amount_requested(self, value):
         """Validate that loan amount requested is positive"""
@@ -268,8 +270,9 @@ class BusinessOwnerInformationSerializer(serializers.ModelSerializer):
             # Other fields
             'created_at',
             'updated_at',
+            'created_by',
         ]
-        read_only_fields = ['id', 'user', 'loan_application', 'owner_uuid', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'user', 'loan_application', 'loan_application_uuid', 'owner_uuid', 'created_at', 'updated_at', 'created_by']
 
     def validate_owner_percentage_of_ownership(self, value):
         """Validate that ownership percentage is between 0 and 100"""
@@ -306,7 +309,7 @@ class TermsAndConditionsSerializer(serializers.ModelSerializer):
             'created_at',
             'updated_at',
         ]
-        read_only_fields = ['id', 'user', 'loan_application', 'accepted_at', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'user', 'loan_application', 'loan_application_uuid', 'accepted_at', 'created_at', 'updated_at']
 
     def validate(self, data):
         """Validate that terms are accepted"""
@@ -333,8 +336,9 @@ class LoanApplicationDocumentSerializer(serializers.ModelSerializer):
             'document_file',
             'uploaded_at',
             'updated_at',
+            'created_by',
         ]
-        read_only_fields = ['id', 'user', 'loan_application', 'document_uuid', 'uploaded_at', 'updated_at']
+        read_only_fields = ['id', 'user', 'loan_application', 'loan_application_uuid', 'document_uuid', 'uploaded_at', 'updated_at', 'created_by']
 
     def validate_document_file(self, value):
         """Validate document file size and type"""

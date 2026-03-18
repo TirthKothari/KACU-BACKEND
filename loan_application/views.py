@@ -1,4 +1,6 @@
+from datetime import datetime
 from rest_framework import generics
+from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import (
@@ -10,7 +12,7 @@ from .models import (
     LoanApplicationDocument,
 )
 from django.db import transaction
-from loan_application.utils import LoanApplicationStep
+from loan_application.utils import LoanApplicationStep, LoanApplicationStatus
 from .serializers import (
     LoanApplicationSerializer,
     LoanApplicationNestedSerializer,
@@ -21,17 +23,18 @@ from .serializers import (
     LoanApplicationDocumentSerializer,
 )
 import api.permissions as permissions
-from .helpers import get_loan_application
+from .helpers import check_loan_application_submitted, check_loan_application_terminal, get_loan_application
 from applicant.utils import UserRoleChoices
+from .helpers import get_role_based_queryset
+from rest_framework.exceptions import ValidationError
 
 
 # ─── Loan Application ─────────────────────────────────────────────────────────
 
 
-class LoanApplicationListCreateView(generics.ListCreateAPIView):
+class LoanApplicationListView(generics.ListAPIView):
     """
     GET  /loan-applications/       → list all loan applications for the user
-    POST /loan-applications/       → create a new loan application
     """
 
     permission_classes = [permissions.IsAuthenticatedWithRole]
@@ -41,20 +44,32 @@ class LoanApplicationListCreateView(generics.ListCreateAPIView):
         user = self.request.user
         role = getattr(user, 'role', None)
 
-        if role == UserRoleChoices.APPLICANT.value:
-            return LoanApplication.objects.filter(user=self.request.user).order_by('-created_at')
+        return get_role_based_queryset(user, LoanApplication, role)
 
-        elif role == UserRoleChoices.AGENT.value:
-            return LoanApplication.objects.filter(user__assigned_agent=self.request.user).order_by('-created_at')
+        # if role == UserRoleChoices.APPLICANT.value:
+        #     return LoanApplication.objects.filter(user=self.request.user).order_by('-created_at')
 
-        elif role == UserRoleChoices.PARTNER.value:
-            return LoanApplication.objects.filter(user__partner=self.request.user).order_by('-created_at')
+        # elif role == UserRoleChoices.AGENT.value:
+        #     return LoanApplication.objects.filter(user__assigned_agent=self.request.user).order_by('-created_at')
 
-        elif role == UserRoleChoices.ADMIN.value:
-            return LoanApplication.objects.all().order_by('-created_at')
-        else:
-            return LoanApplication.objects.none()
+        # elif role == UserRoleChoices.PARTNER.value:
+        #     return LoanApplication.objects.filter(user__partner=self.request.user).order_by('-created_at')
 
+        # elif role == UserRoleChoices.ADMIN.value:
+        #     return LoanApplication.objects.all().order_by('-created_at')
+        # else:
+        #     return LoanApplication.objects.none()
+
+
+class LoanApplicationCreateView(generics.CreateAPIView):
+    """
+    POST /loan-applications/create/       → create a new loan application
+    """
+
+    permission_classes = [permissions.IsApplicant]
+    serializer_class = LoanApplicationSerializer
+
+    @transaction.atomic
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
@@ -72,19 +87,21 @@ class LoanApplicationRetrieveView(generics.RetrieveAPIView):
         user = self.request.user
         role = getattr(user, 'role', None)
 
-        if role == UserRoleChoices.APPLICANT.value:
-            return LoanApplication.objects.filter(user=self.request.user).order_by('-created_at')
+        return get_role_based_queryset(user, LoanApplication, role)
 
-        elif role == UserRoleChoices.AGENT.value:
-            return LoanApplication.objects.filter(user__assigned_agent=self.request.user).order_by('-created_at')
+        # if role == UserRoleChoices.APPLICANT.value:
+        #     return LoanApplication.objects.filter(user=self.request.user).order_by('-created_at')
 
-        elif role == UserRoleChoices.PARTNER.value:
-            return LoanApplication.objects.filter(user__partner=self.request.user).order_by('-created_at')
+        # elif role == UserRoleChoices.AGENT.value:
+        #     return LoanApplication.objects.filter(user__assigned_agent=self.request.user).order_by('-created_at')
 
-        elif role == UserRoleChoices.ADMIN.value:
-            return LoanApplication.objects.all().order_by('-created_at')
-        else:
-            return LoanApplication.objects.none()
+        # elif role == UserRoleChoices.PARTNER.value:
+        #     return LoanApplication.objects.filter(user__partner=self.request.user).order_by('-created_at')
+
+        # elif role == UserRoleChoices.ADMIN.value:
+        #     return LoanApplication.objects.all().order_by('-created_at')
+        # else:
+        #     return LoanApplication.objects.none()
 
 
 class LoanApplicationCurrentStepView(APIView):
@@ -104,20 +121,23 @@ class LoanApplicationCurrentStepView(APIView):
 
 class BusinessInformationCreateView(generics.CreateAPIView):
     """
-    POST /business-information/    → create business information for a loan application
+    POST /business-information/create/    → create business information for a loan application
     """
 
-    permission_classes = [permissions.IsAuthenticatedWithRole]
+    permission_classes = [permissions.IsApplicantOrPartner]
     serializer_class = BusinessInformationSerializer
 
     @transaction.atomic
     def perform_create(self, serializer):
         loan_application_uuid = self.request.data.get('loan_application_uuid')
         loan_application = get_loan_application(loan_application_uuid, self.request.user)
+        check_loan_application_submitted(loan_application)
+        check_loan_application_terminal(loan_application)
         serializer.save(
-            user=self.request.user,
+            user=loan_application.user,
             loan_application=loan_application,
-            loan_application_uuid=loan_application_uuid,
+            loan_application_uuid=loan_application.loan_application_uuid,
+            created_by=self.request.user,
         )
         loan_application.current_step = LoanApplicationStep.BUSINESS_INFORMATION.value
         loan_application.save(update_fields=['current_step', 'updated_at'])
@@ -133,7 +153,10 @@ class BusinessInformationRetrieveView(generics.RetrieveAPIView):
     lookup_field = 'loan_application_uuid'
 
     def get_queryset(self):
-        return BusinessInformation.objects.filter(user=self.request.user)
+        user = self.request.user
+        role = getattr(user, 'role', None)
+
+        return get_role_based_queryset(user, BusinessInformation, role)
 
 
 class BusinessInformationUpdateView(generics.UpdateAPIView):
@@ -142,12 +165,21 @@ class BusinessInformationUpdateView(generics.UpdateAPIView):
     PATCH /business-information/<loan_application_uuid>/update/  → partial update
     """
 
-    permission_classes = [permissions.IsAuthenticatedWithRole]
+    permission_classes = [permissions.IsApplicantOrPartner]
     serializer_class = BusinessInformationSerializer
     lookup_field = 'loan_application_uuid'
 
     def get_queryset(self):
-        return BusinessInformation.objects.filter(user=self.request.user)
+        user = self.request.user
+        role = getattr(user, 'role', None)
+
+        return get_role_based_queryset(user, BusinessInformation, role)
+
+    def perform_update(self, serializer):
+        loan_application = serializer.instance.loan_application
+        check_loan_application_submitted(loan_application)
+        check_loan_application_terminal(loan_application)
+        serializer.save()
 
 
 # ─── Business Funding Information ─────────────────────────────────────────────
@@ -155,20 +187,23 @@ class BusinessInformationUpdateView(generics.UpdateAPIView):
 
 class BusinessFundingInformationCreateView(generics.CreateAPIView):
     """
-    POST /funding-information/     → create funding information for a loan application
+    POST /funding-information/create/     → create funding information for a loan application
     """
 
-    permission_classes = [permissions.IsAuthenticatedWithRole]
+    permission_classes = [permissions.IsApplicantOrPartner]
     serializer_class = BusinessFundingInformationSerializer
 
     @transaction.atomic
     def perform_create(self, serializer):
         loan_application_uuid = self.request.data.get('loan_application_uuid')
         loan_application = get_loan_application(loan_application_uuid, self.request.user)
+        check_loan_application_submitted(loan_application)
+        check_loan_application_terminal(loan_application)
         serializer.save(
-            user=self.request.user,
+            user=loan_application.user,
             loan_application=loan_application,
-            loan_application_uuid=loan_application_uuid,
+            loan_application_uuid=loan_application.loan_application_uuid,
+            created_by=self.request.user,
         )
         loan_application.current_step = LoanApplicationStep.FUNDING_INFORMATION.value
         loan_application.save(update_fields=['current_step', 'updated_at'])
@@ -184,7 +219,10 @@ class BusinessFundingInformationRetrieveView(generics.RetrieveAPIView):
     lookup_field = 'loan_application_uuid'
 
     def get_queryset(self):
-        return BusinessFundingInformation.objects.filter(user=self.request.user)
+        user = self.request.user
+        role = getattr(user, 'role', None)
+
+        return get_role_based_queryset(user, BusinessFundingInformation, role)
 
 
 class BusinessFundingInformationUpdateView(generics.UpdateAPIView):
@@ -193,12 +231,21 @@ class BusinessFundingInformationUpdateView(generics.UpdateAPIView):
     PATCH /funding-information/<loan_application_uuid>/update/  → partial update
     """
 
-    permission_classes = [permissions.IsAuthenticatedWithRole]
+    permission_classes = [permissions.IsApplicantOrPartner]
     serializer_class = BusinessFundingInformationSerializer
     lookup_field = 'loan_application_uuid'
 
     def get_queryset(self):
-        return BusinessFundingInformation.objects.filter(user=self.request.user)
+        user = self.request.user
+        role = getattr(user, 'role', None)
+
+        return get_role_based_queryset(user, BusinessFundingInformation, role)
+
+    def perform_update(self, serializer):
+        loan_application = serializer.instance.loan_application
+        check_loan_application_submitted(loan_application)
+        check_loan_application_terminal(loan_application)
+        serializer.save()
 
 
 # ─── Business Owner Information ───────────────────────────────────────────────
@@ -206,20 +253,23 @@ class BusinessFundingInformationUpdateView(generics.UpdateAPIView):
 
 class BusinessOwnerInformationCreateView(generics.CreateAPIView):
     """
-    POST /owner-information/       → add an owner to a loan application
+    POST /owner-information/create      → add an owner to a loan application
     """
 
-    permission_classes = [permissions.IsAuthenticatedWithRole]
+    permission_classes = [permissions.IsApplicantOrPartner]
     serializer_class = BusinessOwnerInformationSerializer
 
     @transaction.atomic
     def perform_create(self, serializer):
         loan_application_uuid = self.request.data.get('loan_application_uuid')
         loan_application = get_loan_application(loan_application_uuid, self.request.user)
+        check_loan_application_submitted(loan_application)
+        check_loan_application_terminal(loan_application)
         serializer.save(
-            user=self.request.user,
+            user=loan_application.user,
             loan_application=loan_application,
-            loan_application_uuid=loan_application_uuid,
+            loan_application_uuid=loan_application.loan_application_uuid,
+            created_by=self.request.user,
         )
         loan_application.current_step = LoanApplicationStep.BUSINESS_OWNERSHIP_INFORMATION.value
         loan_application.save(update_fields=['current_step', 'updated_at'])
@@ -227,16 +277,19 @@ class BusinessOwnerInformationCreateView(generics.CreateAPIView):
 
 class BusinessOwnerInformationListView(generics.ListAPIView):
     """
-    GET /loan-applications/<loan_application_uuid>/owners/  → list all owners
+    GET /<loan_application_uuid>/owners/  → list all owners
     """
 
     permission_classes = [permissions.IsAuthenticatedWithRole]
     serializer_class = BusinessOwnerInformationSerializer
 
     def get_queryset(self):
+        user = self.request.user
+        role = getattr(user, 'role', None)
         loan_application_uuid = self.kwargs.get('loan_application_uuid')
-        loan_application = get_loan_application(loan_application_uuid, self.request.user)
-        return BusinessOwnerInformation.objects.filter(loan_application=loan_application)
+        loan_application = get_loan_application(loan_application_uuid, self.request.user) if role != UserRoleChoices.ADMIN.value else get_object_or_404(LoanApplication, loan_application_uuid=loan_application_uuid)
+        qs = get_role_based_queryset(user, BusinessOwnerInformation, role)
+        return qs.filter(loan_application=loan_application)
 
 
 class BusinessOwnerInformationRetrieveView(generics.RetrieveAPIView):
@@ -249,7 +302,10 @@ class BusinessOwnerInformationRetrieveView(generics.RetrieveAPIView):
     lookup_field = 'owner_uuid'
 
     def get_queryset(self):
-        return BusinessOwnerInformation.objects.filter(user=self.request.user)
+        user = self.request.user
+        role = getattr(user, 'role', None)
+
+        return get_role_based_queryset(user, BusinessOwnerInformation, role)
 
 
 class BusinessOwnerInformationUpdateView(generics.UpdateAPIView):
@@ -263,7 +319,16 @@ class BusinessOwnerInformationUpdateView(generics.UpdateAPIView):
     lookup_field = 'owner_uuid'
 
     def get_queryset(self):
-        return BusinessOwnerInformation.objects.filter(user=self.request.user)
+        user = self.request.user
+        role = getattr(user, 'role', None)
+
+        return get_role_based_queryset(user, BusinessOwnerInformation, role)
+
+    def perform_update(self, serializer):
+        loan_application = serializer.instance.loan_application
+        check_loan_application_submitted(loan_application)
+        check_loan_application_terminal(loan_application)
+        serializer.save()
 
 
 # ─── Terms and Conditions ─────────────────────────────────────────────────────
@@ -274,20 +339,25 @@ class TermsAndConditionsCreateView(generics.CreateAPIView):
     POST /terms-and-conditions/    → submit terms and conditions for a loan application
     """
 
-    permission_classes = [permissions.IsAuthenticatedWithRole]
+    permission_classes = [permissions.IsApplicant]
     serializer_class = TermsAndConditionsSerializer
 
     @transaction.atomic
     def perform_create(self, serializer):
         loan_application_uuid = self.request.data.get('loan_application_uuid')
         loan_application = get_loan_application(loan_application_uuid, self.request.user)
+        check_loan_application_submitted(loan_application)
+        check_loan_application_terminal(loan_application)
         serializer.save(
             user=self.request.user,
             loan_application=loan_application,
-            loan_application_uuid=loan_application_uuid,
+            loan_application_uuid=loan_application.loan_application_uuid,
+            accepted_at=datetime.now(),
         )
         loan_application.current_step = LoanApplicationStep.TERMS_AND_CONDITIONS.value
-        loan_application.save(update_fields=['current_step', 'updated_at'])
+        loan_application.submitted_at = datetime.now()
+        loan_application.status = LoanApplicationStatus.SUBMITTED.value
+        loan_application.save(update_fields=['current_step', 'submitted_at', 'status', 'updated_at'])
 
 
 class TermsAndConditionsRetrieveView(generics.RetrieveAPIView):
@@ -300,21 +370,27 @@ class TermsAndConditionsRetrieveView(generics.RetrieveAPIView):
     lookup_field = 'loan_application_uuid'
 
     def get_queryset(self):
-        return TermsAndConditions.objects.filter(user=self.request.user)
+        user = self.request.user
+        role = getattr(user, 'role', None)
+
+        return get_role_based_queryset(user, TermsAndConditions, role)
 
 
-class TermsAndConditionsUpdateView(generics.UpdateAPIView):
-    """
-    PUT   /terms-and-conditions/<loan_application_uuid>/update/  → full update
-    PATCH /terms-and-conditions/<loan_application_uuid>/update/  → partial update
-    """
+# class TermsAndConditionsUpdateView(generics.UpdateAPIView):
+#     """
+#     PUT   /terms-and-conditions/<loan_application_uuid>/update/  → full update
+#     PATCH /terms-and-conditions/<loan_application_uuid>/update/  → partial update
+#     """
 
-    permission_classes = [permissions.IsAuthenticatedWithRole]
-    serializer_class = TermsAndConditionsSerializer
-    lookup_field = 'loan_application_uuid'
+#     permission_classes = [permissions.Is]
+#     serializer_class = TermsAndConditionsSerializer
+#     lookup_field = 'loan_application_uuid'
 
-    def get_queryset(self):
-        return TermsAndConditions.objects.filter(user=self.request.user)
+#     def get_queryset(self):
+#         user = self.request.user
+#         role = getattr(user, 'role', None)
+
+#         return get_role_based_queryset(user, TermsAndConditions, role)
 
 
 # ─── Loan Application Documents ───────────────────────────────────────────────
@@ -325,20 +401,25 @@ class LoanApplicationDocumentCreateView(generics.CreateAPIView):
     POST /documents/               → upload a document for a loan application
     """
 
-    permission_classes = [permissions.IsAuthenticatedWithRole]
+    permission_classes = [permissions.IsApplicantOrPartner]
     serializer_class = LoanApplicationDocumentSerializer
 
     @transaction.atomic
     def perform_create(self, serializer):
         loan_application_uuid = self.request.data.get('loan_application_uuid')
         loan_application = get_loan_application(loan_application_uuid, self.request.user)
+        if loan_application.status != LoanApplicationStatus.SUBMITTED.value or loan_application.submitted_at is None:
+            raise ValidationError("Cannot upload documents for a loan application that is not submitted.")
+        check_loan_application_terminal(loan_application)
         serializer.save(
-            user=self.request.user,
+            user=loan_application.user,
             loan_application=loan_application,
-            loan_application_uuid=loan_application_uuid,
+            loan_application_uuid=loan_application.loan_application_uuid,
+            created_by=self.request.user,
         )
         loan_application.current_step = LoanApplicationStep.DOCUMENT_UPLOAD.value
-        loan_application.save(update_fields=['current_step', 'updated_at'])
+        loan_application.status = LoanApplicationStatus.PENDING.value if loan_application.status == LoanApplicationStatus.SUBMITTED.value else loan_application.status
+        loan_application.save(update_fields=['current_step', 'status', 'updated_at'])
 
 
 class LoanApplicationDocumentListView(generics.ListAPIView):
@@ -351,8 +432,9 @@ class LoanApplicationDocumentListView(generics.ListAPIView):
 
     def get_queryset(self):
         loan_application_uuid = self.kwargs.get('loan_application_uuid')
-        loan_application = get_loan_application(loan_application_uuid, self.request.user)
-        return LoanApplicationDocument.objects.filter(loan_application=loan_application)
+        loan_application = get_loan_application(loan_application_uuid, self.request.user) if self.request.user.role != UserRoleChoices.ADMIN.value else get_object_or_404(LoanApplication, loan_application_uuid=loan_application_uuid)
+        qs = get_role_based_queryset(self.request.user, LoanApplicationDocument, self.request.user.role)
+        return qs.filter(loan_application=loan_application)
 
 
 class LoanApplicationDocumentRetrieveView(generics.RetrieveAPIView):
@@ -365,7 +447,10 @@ class LoanApplicationDocumentRetrieveView(generics.RetrieveAPIView):
     lookup_field = 'document_uuid'
 
     def get_queryset(self):
-        return LoanApplicationDocument.objects.filter(user=self.request.user)
+        user = self.request.user
+        role = getattr(user, 'role', None)
+
+        return get_role_based_queryset(user, LoanApplicationDocument, role)
 
 
 class LoanApplicationDocumentUpdateView(generics.UpdateAPIView):
@@ -374,9 +459,17 @@ class LoanApplicationDocumentUpdateView(generics.UpdateAPIView):
     PATCH /documents/<document_uuid>/update/  → partial update
     """
 
-    permission_classes = [permissions.IsAuthenticatedWithRole]
+    permission_classes = [permissions.IsApplicantOrPartner]
     serializer_class = LoanApplicationDocumentSerializer
     lookup_field = 'document_uuid'
 
     def get_queryset(self):
-        return LoanApplicationDocument.objects.filter(user=self.request.user)
+        user = self.request.user
+        role = getattr(user, 'role', None)
+
+        return get_role_based_queryset(user, LoanApplicationDocument, role)
+
+    def perform_update(self, serializer):
+        loan_application = serializer.instance.loan_application
+        check_loan_application_terminal(loan_application)
+        serializer.save()
