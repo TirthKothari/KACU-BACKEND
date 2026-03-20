@@ -31,6 +31,10 @@ class LoanApplicationSerializer(serializers.ModelSerializer):
             'loan_type',
             'status',
             'approved_funds',
+            'rejection_reason',
+            'partner_commision',
+            'approved_at',
+            'rejected_at',
             'current_step',
             'submitted_at',
             'is_complete',
@@ -38,7 +42,7 @@ class LoanApplicationSerializer(serializers.ModelSerializer):
             'created_at',
             'updated_at',
         ]
-        read_only_fields = ['id', 'user', 'loan_application_uuid', 'created_at', 'updated_at', 'is_complete', 'completion_percentage']
+        read_only_fields = ['id', 'user', 'loan_application_uuid', 'approved_at', 'rejected_at', 'approved_funds', 'rejection_reason', 'partner_commision', 'created_at', 'updated_at', 'is_complete', 'completion_percentage']
 
     def validate(self, data):
         """Prevent multiple pending applications for the same loan type per user."""
