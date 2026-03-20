@@ -23,7 +23,7 @@ from .views import HealthCheckView, homeview
 
 
 urlpatterns = [
-    path('/', homeview.as_view(), name="home"),
+    path('', homeview.as_view(), name="home"),
     path("admin/", admin.site.urls),
     path("health_api/", HealthCheckView.as_view(), name="health_api"),
     path("api/applicant/", include("applicant.urls")),
