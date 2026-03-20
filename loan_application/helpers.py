@@ -27,7 +27,7 @@ def is_loan_application_submitted(loan_application):
     """Check if loan application is submitted (status is SUBMITTED or beyond)."""
     from .utils import LoanApplicationStatus
 
-    return loan_application.status == LoanApplicationStatus.SUBMITTED.value or loan_application.submitted_at is not None
+    return loan_application.status in [LoanApplicationStatus.SUBMITTED.value, LoanApplicationStatus.PENDING.value] or loan_application.submitted_at is not None
 
 
 def check_loan_application_submitted(loan_application):

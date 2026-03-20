@@ -16,6 +16,7 @@ from loan_application.utils import LoanApplicationStep, LoanApplicationStatus
 from .serializers import (
     LoanApplicationSerializer,
     LoanApplicationNestedSerializer,
+    LoanApplicationDecisionSerializer,
     BusinessInformationSerializer,
     BusinessFundingInformationSerializer,
     BusinessOwnerInformationSerializer,
@@ -116,6 +117,25 @@ class LoanApplicationCurrentStepView(APIView):
         return Response({'current_step': loan_application.current_step})
 
 
+class LoanApplicationDecisionUpdateView(generics.UpdateAPIView):
+    """
+    PATCH /loan-applications/<loan_application_uuid>/decision/  → approve or reject a loan application
+    """
+
+    permission_classes = [permissions.IsAdminOrAgent]
+    serializer_class = LoanApplicationDecisionSerializer
+    lookup_field = 'loan_application_uuid'
+
+    def get_queryset(self):
+        user = self.request.user
+        role = getattr(user, 'role', None)
+
+        return get_role_based_queryset(user, LoanApplication, role)
+
+    def perform_update(self, serializer):
+        serializer.save()
+
+
 # ─── Business Information ─────────────────────────────────────────────────────
 
 
@@ -139,7 +159,7 @@ class BusinessInformationCreateView(generics.CreateAPIView):
             loan_application_uuid=loan_application.loan_application_uuid,
             created_by=self.request.user,
         )
-        loan_application.current_step = LoanApplicationStep.BUSINESS_INFORMATION.value
+        loan_application.current_step = LoanApplicationStep.FUNDING_INFORMATION.value
         loan_application.save(update_fields=['current_step', 'updated_at'])
 
 
@@ -205,7 +225,7 @@ class BusinessFundingInformationCreateView(generics.CreateAPIView):
             loan_application_uuid=loan_application.loan_application_uuid,
             created_by=self.request.user,
         )
-        loan_application.current_step = LoanApplicationStep.FUNDING_INFORMATION.value
+        loan_application.current_step = LoanApplicationStep.BUSINESS_OWNERSHIP_INFORMATION.value
         loan_application.save(update_fields=['current_step', 'updated_at'])
 
 
@@ -271,7 +291,7 @@ class BusinessOwnerInformationCreateView(generics.CreateAPIView):
             loan_application_uuid=loan_application.loan_application_uuid,
             created_by=self.request.user,
         )
-        loan_application.current_step = LoanApplicationStep.BUSINESS_OWNERSHIP_INFORMATION.value
+        loan_application.current_step = LoanApplicationStep.TERMS_AND_CONDITIONS.value if loan_application.current_step in [LoanApplicationStep.BUSINESS_INFORMATION.value, LoanApplicationStep.FUNDING_INFORMATION.value, LoanApplicationStep.BUSINESS_OWNERSHIP_INFORMATION.value] else loan_application.current_step
         loan_application.save(update_fields=['current_step', 'updated_at'])
 
 
@@ -354,7 +374,7 @@ class TermsAndConditionsCreateView(generics.CreateAPIView):
             loan_application_uuid=loan_application.loan_application_uuid,
             accepted_at=datetime.now(),
         )
-        loan_application.current_step = LoanApplicationStep.TERMS_AND_CONDITIONS.value
+        loan_application.current_step = LoanApplicationStep.DOCUMENT_UPLOAD.value
         loan_application.submitted_at = datetime.now()
         loan_application.status = LoanApplicationStatus.SUBMITTED.value
         loan_application.save(update_fields=['current_step', 'submitted_at', 'status', 'updated_at'])
@@ -417,7 +437,7 @@ class LoanApplicationDocumentCreateView(generics.CreateAPIView):
             loan_application_uuid=loan_application.loan_application_uuid,
             created_by=self.request.user,
         )
-        loan_application.current_step = LoanApplicationStep.DOCUMENT_UPLOAD.value
+        loan_application.current_step = LoanApplicationStep.COMPLETED.value
         loan_application.status = LoanApplicationStatus.PENDING.value if loan_application.status == LoanApplicationStatus.SUBMITTED.value else loan_application.status
         loan_application.save(update_fields=['current_step', 'status', 'updated_at'])
 

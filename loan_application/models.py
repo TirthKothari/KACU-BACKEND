@@ -21,6 +21,8 @@ class LoanApplication(models.Model):
     partner_commision = models.DecimalField(max_digits=40, decimal_places=10, blank=True, null=True)
     current_step = models.CharField(max_length=100, choices=LoanApplicationStep.choices(), default=LoanApplicationStep.BUSINESS_INFORMATION.value)
     submitted_at = models.DateTimeField(blank=True, null=True)
+    approved_at = models.DateTimeField(blank=True, null=True)
+    rejected_at = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

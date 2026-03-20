@@ -11,6 +11,7 @@ from applicant.serializers import UserSerializer
 from loan_type.serializers import LoanTypeListSerializer
 from .utils import LoanApplicationStatus
 from decimal import Decimal, InvalidOperation
+from django.utils import timezone
 
 
 class LoanApplicationSerializer(serializers.ModelSerializer):
@@ -437,3 +438,79 @@ class LoanApplicationNestedSerializer(serializers.ModelSerializer):
         has_documents = hasattr(obj, 'loanapplicationdocument_set') and obj.loanapplicationdocument_set.exists()
 
         return all([has_business_info, has_funding_info, has_owner_info, has_terms, has_documents])
+
+
+class LoanApplicationDecisionSerializer(serializers.ModelSerializer):
+    """Serializer for admin/agent loan application approval or rejection decisions."""
+
+    class Meta:
+        model = LoanApplication
+        fields = [
+            'loan_application_uuid',
+            'status',
+            'approved_funds',
+            'rejection_reason',
+            'partner_commision',
+            'approved_at',
+            'rejected_at',
+            'updated_at',
+        ]
+        read_only_fields = ['loan_application_uuid', 'updated_at', 'approved_at', 'rejected_at']
+
+    def validate(self, data):
+        instance = self.instance
+        decision_status = data.get('status', instance.status if instance else None)
+
+        if decision_status not in [LoanApplicationStatus.APPROVED.value, LoanApplicationStatus.REJECTED.value]:
+            raise serializers.ValidationError({'status': 'Status must be either approved or rejected.'})
+
+        if instance and instance.status in [LoanApplicationStatus.DRAFT.value, LoanApplicationStatus.APPROVED.value, LoanApplicationStatus.REJECTED.value]:
+            raise serializers.ValidationError({'status': 'Only submitted or pending loan applications can be approved or rejected.'})
+
+        approved_funds = data.get('approved_funds', instance.approved_funds if instance else None)
+        rejection_reason = data.get('rejection_reason', instance.rejection_reason if instance else None)
+        partner_commision = data.get('partner_commision', instance.partner_commision if instance else None)
+
+        if decision_status == LoanApplicationStatus.APPROVED.value:
+            if approved_funds is None:
+                raise serializers.ValidationError({'approved_funds': 'approved_funds is required when approving a loan application.'})
+
+            if approved_funds <= 0:
+                raise serializers.ValidationError({'approved_funds': 'approved_funds must be greater than zero.'})
+
+            if instance and instance.user and instance.user.partner:
+                if partner_commision is None:
+                    raise serializers.ValidationError({'partner_commision': 'partner_commision is required when approving an application with a partner.'})
+
+                if partner_commision < 0:
+                    raise serializers.ValidationError({'partner_commision': 'partner_commision cannot be negative.'})
+            elif partner_commision is not None:
+                raise serializers.ValidationError({'partner_commision': 'partner_commision is only allowed when the applicant has a partner.'})
+
+            data['rejection_reason'] = None
+
+        if decision_status == LoanApplicationStatus.REJECTED.value:
+            if not rejection_reason or not str(rejection_reason).strip():
+                raise serializers.ValidationError({'rejection_reason': 'rejection_reason is required when rejecting a loan application.'})
+
+            data['approved_funds'] = None
+            data['partner_commision'] = None
+
+        return data
+
+    def update(self, instance, validated_data):
+        decision_status = validated_data.get('status', instance.status)
+        instance.status = decision_status
+        instance.approved_funds = validated_data.get('approved_funds', instance.approved_funds)
+        instance.rejection_reason = validated_data.get('rejection_reason', instance.rejection_reason)
+        instance.partner_commision = validated_data.get('partner_commision', instance.partner_commision)
+
+        if decision_status == LoanApplicationStatus.APPROVED.value:
+            instance.approved_at = timezone.now()
+            instance.rejected_at = None
+        elif decision_status == LoanApplicationStatus.REJECTED.value:
+            instance.rejected_at = timezone.now()
+            instance.approved_at = None
+
+        instance.save(update_fields=['status', 'approved_funds', 'rejection_reason', 'partner_commision', 'updated_at', 'approved_at', 'rejected_at'])
+        return instance
