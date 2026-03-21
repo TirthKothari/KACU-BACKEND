@@ -284,3 +284,5 @@ Thumbs.db
 # GitHub Copilot
 .github/copilot-instructions.md
 *.lock
+
+todo.txt
