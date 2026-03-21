@@ -18,7 +18,7 @@ INVITABLE_ROLES = [
 class InvitedUsers(models.Model):
     uuid = models.UUIDField(unique=True, default=uuid.uuid4)
     email = models.EmailField(db_index=True)
-    role = models.CharField(max_length=50, choices=INVITABLE_ROLES)
+    role = models.CharField(max_length=50, choices=UserRoleChoices.invitable_roles())
     token_hash = models.CharField(max_length=64, unique=True)
     expires_at = models.DateTimeField()
     accepted_at = models.DateTimeField(null=True, blank=True)
