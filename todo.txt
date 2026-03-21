@@ -1,0 +1,10 @@
+Make a table for loan type. Admin can create or add new types, and they can edit the current types.
+prequalification form validations.
+Re apply for prequalification by registered users.
+if user has not registered the account , but filled the prequalification form , so if he again fills it up with the same email id , we will not allow it to re apply. we will ask him to create the account and then reapply from the login.
+Main loan application form.
+User can apply for only  1 loan applicationn for a particular loan type.
+api to fetch the types of loan.
+agent registration and login.
+partner registration and login.
+admin registration and login.
