@@ -14,11 +14,3 @@ class HealthCheckView(APIView):
     def get(self, request):
         logger.info("Health check requested.")
         return Response({"status": "healthy"}, status=status.HTTP_200_OK)
-
-
-class homeview(APIView):
-    permission_classes = [AllowAny]
-
-    def get(self, request):
-        logger.info("Home view requested.")
-        return Response({"message": "Welcome to the API"}, status=status.HTTP_200_OK)
