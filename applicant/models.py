@@ -41,7 +41,7 @@ class User(AbstractUser):
 
 class pre_qualification(models.Model):
     uuid = models.UUIDField(unique=True, default=uuid.uuid4)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='prequalification_user')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, unique=True, related_name='prequalification_user')
     business_name = models.CharField(max_length=255)
     loan_amount = models.CharField(max_length=255, choices=LoanAmountChoices.choices())
     # loan_type = models.CharField(max_length=255, choices=LoanTypeChoices.choices())
@@ -52,7 +52,7 @@ class pre_qualification(models.Model):
     annual_revenue = models.FloatField()
     is_qualified = models.BooleanField(default=False)
     name = models.CharField(max_length=255)
-    email = models.EmailField()
+    email = models.EmailField(unique=True)
     phone = models.CharField(
         max_length=20,
         default="+9190041179290",
