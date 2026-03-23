@@ -91,6 +91,7 @@ INSTALLED_APPS = [
     "loan_type",
     "loan_application",
     "userprofile",
+    "adminuser",
 ]
 
 AUTH_USER_MODEL = 'applicant.User'

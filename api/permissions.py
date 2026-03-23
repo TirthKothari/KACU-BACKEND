@@ -24,6 +24,12 @@ class BaseRolePermission(permissions.BasePermission):
                 logger.warning(f"Unauthenticated access attempt to {view.__class__.__name__}")
                 return False
 
+            # Check if user account is active
+            if not request.user.is_active:
+                self.message = "User account is disabled."
+                logger.warning(f"Inactive user {request.user.id} attempted to access {view.__class__.__name__}")
+                return False
+
             # Check if user has a valid role
             if not hasattr(request.user, 'role'):
                 self.message = "User role is not defined."
