@@ -39,6 +39,21 @@ class User(AbstractUser):
         super().save(*args, **kwargs)
 
 
+class AgentAssignmentState(models.Model):
+    """
+    Singleton-like pointer used for fair round-robin applicant assignment.
+    """
+
+    last_assigned_agent = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='agent_assignment_state_last_agent',
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+
 class pre_qualification(models.Model):
     uuid = models.UUIDField(unique=True, default=uuid.uuid4)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, unique=True, related_name='prequalification_user')

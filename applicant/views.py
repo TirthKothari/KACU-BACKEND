@@ -7,6 +7,7 @@ from django.contrib.auth import authenticate
 from api import settings
 from .serializers import PreQualificationSerializer, UserRegistrationSerializer
 from .models import User, pre_qualification
+from .helpers import assign_agent_round_robin
 from .utils import UserRoleChoices
 from django.db import transaction
 import logging
@@ -180,12 +181,45 @@ class ApplicantUserRegistration(APIView):
 
                     logger.info(f"User created successfully with username: {user.username}")
 
+                    assigned_agent = assign_agent_round_robin(user)
+                    if assigned_agent:
+                        logger.info(f"Applicant {user.id} assigned to agent {assigned_agent.id}")
+                    else:
+                        logger.warning(f"No active agents available while registering applicant {user.id}")
+
                     # Associate user with prequalification form
                     prequalification_form.user = user
                     prequalification_form.save()
                     logger.info(f"Prequalification form {prequalification_form.uuid} updated with user {user.username}")
 
-                    return Response({'success': True, 'message': 'User registered successfully', 'data': {'user_id': user.id, 'username': user.username, 'email': user.email, 'first_name': user.first_name, 'last_name': user.last_name, 'phone': user.phone, 'role': user.role, 'is_qualified': user.is_qualified, 'prequalification_form_uuid': str(prequalification_form.uuid)}}, status=status.HTTP_201_CREATED)
+                    return Response(
+                        {
+                            'success': True,
+                            'message': 'User registered successfully',
+                            'data': {
+                                'user_id': user.id,
+                                'username': user.username,
+                                'email': user.email,
+                                'first_name': user.first_name,
+                                'last_name': user.last_name,
+                                'phone': user.phone,
+                                'role': user.role,
+                                'is_qualified': user.is_qualified,
+                                'prequalification_form_uuid': str(prequalification_form.uuid),
+                                'assigned_agent': (
+                                    {
+                                        'id': assigned_agent.id,
+                                        'first_name': assigned_agent.first_name,
+                                        'last_name': assigned_agent.last_name,
+                                        'email': assigned_agent.email,
+                                    }
+                                    if assigned_agent
+                                    else None
+                                ),
+                            },
+                        },
+                        status=status.HTTP_201_CREATED,
+                    )
 
             except pre_qualification.DoesNotExist:
                 logger.error(f"Prequalification form not found: {validated_data.get('prequalification_form_uuid')}")
