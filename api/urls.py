@@ -30,4 +30,5 @@ urlpatterns = [
     path("api/invite-users/", include("invite_users.urls")),
     path("api/loan-types/", include("loan_type.urls")),
     path("api/application/", include("loan_application.urls")),
+    path("api/user-profile/", include("userprofile.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
