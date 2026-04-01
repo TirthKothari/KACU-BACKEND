@@ -1,5 +1,6 @@
 from rest_framework import permissions
 import logging
+from applicant.utils import UserRoleChoices
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +25,12 @@ class BaseRolePermission(permissions.BasePermission):
                 logger.warning(f"Unauthenticated access attempt to {view.__class__.__name__}")
                 return False
 
+            # Check if user account is active
+            if not request.user.is_active:
+                self.message = "User account is disabled."
+                logger.warning(f"Inactive user {request.user.id} attempted to access {view.__class__.__name__}")
+                return False
+
             # Check if user has a valid role
             if not hasattr(request.user, 'role'):
                 self.message = "User role is not defined."
@@ -34,6 +41,11 @@ class BaseRolePermission(permissions.BasePermission):
             if request.user.role not in self.allowed_roles:
                 self.message = f"Access denied. Required role(s): {', '.join(self.allowed_roles)}. Your role: {request.user.role}"
                 logger.warning(f"User {request.user.id} with role {request.user.role} " f"attempted to access {view.__class__.__name__} which requires {self.allowed_roles}")
+                return False
+
+            if request.user.role == UserRoleChoices.APPLICANT.value and not request.user.is_qualified:
+                self.message = "Your account is not qualified to perform this action."
+                logger.warning(f"Unqualified applicant {request.user.id} attempted to access {view.__class__.__name__}")
                 return False
 
             return True
@@ -61,7 +73,7 @@ class IsAdmin(BaseRolePermission):
     Admins have full access to all resources.
     """
 
-    allowed_roles = ['ADMIN']
+    allowed_roles = [UserRoleChoices.ADMIN.value]
     message = "Only administrators can perform this action."
 
 
@@ -71,7 +83,7 @@ class IsApplicant(BaseRolePermission):
     Applicants can access their own loan applications and prequalification data.
     """
 
-    allowed_roles = ['APPLICANT']
+    allowed_roles = [UserRoleChoices.APPLICANT.value]
     message = "Only applicants can perform this action."
 
     def has_object_permission(self, request, view, obj):
@@ -109,7 +121,7 @@ class IsAgent(BaseRolePermission):
     Agents can access applicants assigned to them.
     """
 
-    allowed_roles = ['AGENT']
+    allowed_roles = [UserRoleChoices.AGENT.value]
     message = "Only agents can perform this action."
 
     def has_object_permission(self, request, view, obj):
@@ -150,7 +162,7 @@ class IsPartner(BaseRolePermission):
     Partners can access applicants who used their referral code.
     """
 
-    allowed_roles = ['PARTNER']
+    allowed_roles = [UserRoleChoices.PARTNER.value]
     message = "Only partners can perform this action."
 
     def has_object_permission(self, request, view, obj):
@@ -191,7 +203,7 @@ class IsAdminOrApplicant(BaseRolePermission):
     Useful for views where both admins and applicants can perform actions.
     """
 
-    allowed_roles = ['ADMIN', 'APPLICANT']
+    allowed_roles = [UserRoleChoices.ADMIN.value, UserRoleChoices.APPLICANT.value]
     message = "Only administrators or applicants can perform this action."
 
     def has_object_permission(self, request, view, obj):
@@ -203,11 +215,11 @@ class IsAdminOrApplicant(BaseRolePermission):
                 return False
 
             # Admins have unrestricted access
-            if request.user.role == 'ADMIN':
+            if request.user.role == UserRoleChoices.ADMIN.value:
                 return True
 
             # Applicants can only access their own data
-            if request.user.role == 'APPLICANT':
+            if request.user.role == UserRoleChoices.APPLICANT.value:
                 if hasattr(obj, 'user') and obj.user:
                     if obj.user.id != request.user.id:
                         self.message = "You can only access your own data."
@@ -234,7 +246,7 @@ class IsAdminOrAgent(BaseRolePermission):
     Useful for views where both admins and agents can perform actions.
     """
 
-    allowed_roles = ['ADMIN', 'AGENT']
+    allowed_roles = [UserRoleChoices.ADMIN.value, UserRoleChoices.AGENT.value]
     message = "Only administrators or agents can perform this action."
 
     def has_object_permission(self, request, view, obj):
@@ -246,11 +258,11 @@ class IsAdminOrAgent(BaseRolePermission):
                 return False
 
             # Admins have unrestricted access
-            if request.user.role == 'ADMIN':
+            if request.user.role == UserRoleChoices.ADMIN.value:
                 return True
 
             # Agents can access their assigned applicants
-            if request.user.role == 'AGENT':
+            if request.user.role == UserRoleChoices.AGENT.value:
                 if hasattr(obj, 'assigned_agent') and obj.assigned_agent:
                     if obj.assigned_agent.id == request.user.id:
                         return True
@@ -280,7 +292,7 @@ class IsAdminOrPartner(BaseRolePermission):
     Useful for views where both admins and partners can perform actions.
     """
 
-    allowed_roles = ['ADMIN', 'PARTNER']
+    allowed_roles = [UserRoleChoices.ADMIN.value, UserRoleChoices.PARTNER.value]
     message = "Only administrators or partners can perform this action."
 
     def has_object_permission(self, request, view, obj):
@@ -292,11 +304,11 @@ class IsAdminOrPartner(BaseRolePermission):
                 return False
 
             # Admins have unrestricted access
-            if request.user.role == 'ADMIN':
+            if request.user.role == UserRoleChoices.ADMIN.value:
                 return True
 
             # Partners can access their referred applicants
-            if request.user.role == 'PARTNER':
+            if request.user.role == UserRoleChoices.PARTNER.value:
                 if hasattr(obj, 'partner') and obj.partner:
                     if obj.partner.id == request.user.id:
                         return True
@@ -327,7 +339,7 @@ class IsApplicantOrPartner(BaseRolePermission):
     Useful for views where both applicants and partners can perform actions.
     """
 
-    allowed_roles = ['APPLICANT', 'PARTNER']
+    allowed_roles = [UserRoleChoices.APPLICANT.value, UserRoleChoices.PARTNER.value]
     message = "Only applicants or partners can perform this action."
 
     def has_object_permission(self, request, view, obj):
@@ -339,7 +351,7 @@ class IsApplicantOrPartner(BaseRolePermission):
                 return False
 
             # Applicants can only access their own data
-            if request.user.role == 'APPLICANT':
+            if request.user.role == UserRoleChoices.APPLICANT.value:
                 if hasattr(obj, 'user') and obj.user:
                     if obj.user.id != request.user.id:
                         self.message = "You can only access your own data."
@@ -353,7 +365,7 @@ class IsApplicantOrPartner(BaseRolePermission):
                 return False
 
             # Partners can access their referred applicants
-            if request.user.role == 'PARTNER':
+            if request.user.role == UserRoleChoices.PARTNER.value:
                 if hasattr(obj, 'partner') and obj.partner:
                     if obj.partner.id == request.user.id:
                         return True
@@ -384,7 +396,7 @@ class IsOwnerOrAdmin(BaseRolePermission):
     Works for any object that has a user field.
     """
 
-    allowed_roles = ['ADMIN', 'APPLICANT', 'AGENT', 'PARTNER']
+    allowed_roles = [UserRoleChoices.ADMIN.value, UserRoleChoices.APPLICANT.value, UserRoleChoices.AGENT.value, UserRoleChoices.PARTNER.value]
     message = "You must be the owner or an administrator to perform this action."
 
     def has_object_permission(self, request, view, obj):
@@ -396,7 +408,7 @@ class IsOwnerOrAdmin(BaseRolePermission):
                 return False
 
             # Admins have full access
-            if request.user.role == 'ADMIN':
+            if request.user.role == UserRoleChoices.ADMIN.value:
                 return True
 
             # Check if user is the owner
@@ -439,5 +451,5 @@ class IsAuthenticatedWithRole(BaseRolePermission):
     Allows all authenticated users with a defined role.
     """
 
-    allowed_roles = ['ADMIN', 'APPLICANT', 'AGENT', 'PARTNER']
+    allowed_roles = [UserRoleChoices.ADMIN.value, UserRoleChoices.APPLICANT.value, UserRoleChoices.AGENT.value, UserRoleChoices.PARTNER.value]
     message = "Authentication and a valid role are required."

@@ -73,3 +73,7 @@ class UserRoleChoices(enum.Enum):
     @classmethod
     def choices(cls):
         return [(choice.name, choice.value) for choice in cls]
+
+    @classmethod
+    def invitable_roles(cls):
+        return [(choice.name, choice.value) for choice in [cls.ADMIN, cls.AGENT, cls.PARTNER]]

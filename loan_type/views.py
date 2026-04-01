@@ -1,7 +1,7 @@
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import AllowAny
 from django.db import transaction
 from django.core.exceptions import ValidationError as DjangoValidationError
 import logging
@@ -23,7 +23,7 @@ class LoanTypeListView(generics.ListAPIView):
 
     queryset = LoanType.objects.all().select_related('created_by').order_by('-created_at')
     serializer_class = LoanTypeListSerializer
-    permission_classes = [IsAuthenticated, IsAuthenticatedWithRole]
+    permission_classes = [IsAuthenticatedWithRole]
 
     def get_queryset(self):
         """
@@ -62,7 +62,7 @@ class LoanTypeCreateView(generics.CreateAPIView):
 
     queryset = LoanType.objects.all()
     serializer_class = LoanTypeSerializer
-    permission_classes = [IsAuthenticated, IsAdmin]
+    permission_classes = [IsAdmin]
 
     @transaction.atomic
     def create(self, request, *args, **kwargs):
@@ -104,7 +104,7 @@ class LoanTypeDetailView(generics.RetrieveAPIView):
 
     queryset = LoanType.objects.all().select_related('created_by')
     serializer_class = LoanTypeSerializer
-    permission_classes = [IsAuthenticated, IsAuthenticatedWithRole]
+    permission_classes = [IsAuthenticatedWithRole]
     lookup_field = 'pk'
 
     def retrieve(self, request, *args, **kwargs):
@@ -138,7 +138,7 @@ class LoanTypeUpdateView(generics.UpdateAPIView):
 
     queryset = LoanType.objects.all()
     serializer_class = LoanTypeSerializer
-    permission_classes = [IsAuthenticated, IsAdmin]
+    permission_classes = [IsAdmin]
     lookup_field = 'pk'
 
     @transaction.atomic
@@ -198,7 +198,7 @@ class LoanTypeDeleteView(generics.DestroyAPIView):
 
     queryset = LoanType.objects.all()
     serializer_class = LoanTypeSerializer
-    permission_classes = [IsAuthenticated, IsAdmin]
+    permission_classes = [IsAdmin]
     lookup_field = 'pk'
 
     @transaction.atomic

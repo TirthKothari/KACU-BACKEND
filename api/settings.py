@@ -87,8 +87,11 @@ INSTALLED_APPS = [
     "api",
     "storages",
     "applicant",
+    "invite_users",
     "loan_type",
     "loan_application",
+    "userprofile",
+    "adminuser",
 ]
 
 AUTH_USER_MODEL = 'applicant.User'
@@ -214,6 +217,13 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
 }
+
+INVITE_LINK_EXPIRY_HOURS = 48
+FRONTEND_INVITE_ACCEPT_URL = os.getenv("FRONTEND_INVITE_ACCEPT_URL", "http://localhost:5173/") + "invite/accept"
+INVITE_BUSINESS_NAME = os.getenv("INVITE_BUSINESS_NAME", "KACU")
+BREVO_API_KEY = os.getenv("BREVO_API_KEY")
+BREVO_SENDER_NAME = os.getenv("BREVO_SENDER_NAME", "KACU")
+BREVO_SENDER_EMAIL = os.getenv("BREVO_SENDER_EMAIL", "info@kacu.ca")
 
 # LOGS_DIR = BASE_DIR / "logs"
 # os.makedirs(LOGS_DIR, exist_ok=True)
