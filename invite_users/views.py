@@ -67,6 +67,7 @@ class CreateInvitationView(APIView):
         }
         if getattr(settings, 'DEBUG', False):
             response_data['invite_link'] = invite_link
+            logger.debug("Invitation created for %s with link: %s", invitation.email, invite_link)
 
         return Response(
             {
