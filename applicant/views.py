@@ -11,7 +11,7 @@ from .helpers import assign_agent_round_robin
 from .utils import UserRoleChoices
 from django.db import transaction
 import logging
-from api.permissions import IsAdminOrApplicant
+from api.permissions import IsAdminOrApplicant, IsApplicant
 
 
 logger = logging.getLogger(settings.LOGGER)
@@ -275,3 +275,20 @@ class UserLoginView(APIView):
         except Exception as e:
             logger.error(f"Error during user login: {str(e)}", exc_info=True)
             return Response({'success': False, 'message': 'An error occurred while processing your request', 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class RetrieveUserPrequalification(generics.RetrieveAPIView):
+    """
+    API endpoint to retrieve the prequalification form associated with the authenticated user.
+    """
+
+    serializer_class = PreQualificationSerializer
+    permission_classes = [IsApplicant]
+
+    def get_object(self):
+        try:
+            prequalification_form = pre_qualification.objects.get(user=self.request.user)
+            return prequalification_form
+        except pre_qualification.DoesNotExist:
+            logger.warning(f"No prequalification form found for user {self.request.user.id}")
+            raise serializers.ValidationError("No prequalification form found for this user.")

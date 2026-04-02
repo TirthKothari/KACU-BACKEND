@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import pre_qualification, User
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
+from loan_type.serializers import LoanTypeSerializer
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -12,10 +13,11 @@ class UserSerializer(serializers.ModelSerializer):
 
 class PreQualificationSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
+    loan_type_info = LoanTypeSerializer(source='loan_type', read_only=True)
 
     class Meta:
         model = pre_qualification
-        fields = ['id', 'uuid', 'user', 'business_name', 'loan_amount', 'loan_type', 'loan_term', 'business_location', 'years_in_business', 'annual_revenue', 'is_qualified', 'name', 'email', 'phone', 'partner', 'refernce_code', 'created_at', 'updated_at']
+        fields = ['id', 'uuid', 'user', 'business_name', 'loan_amount', 'loan_type', 'loan_type_info', 'loan_term', 'business_location', 'years_in_business', 'annual_revenue', 'is_qualified', 'name', 'email', 'phone', 'partner', 'refernce_code', 'created_at', 'updated_at']
         read_only_fields = ['id', 'uuid', 'created_at', 'updated_at']
 
 
