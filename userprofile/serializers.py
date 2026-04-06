@@ -34,7 +34,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "partner_details",
             "assigned_agent_details",
             "is_new",
-            "loan_types_applied_for",
             "prequalification_loan_type_applied_for",
         ]
         read_only_fields = [
