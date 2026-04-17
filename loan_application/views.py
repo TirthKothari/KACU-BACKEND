@@ -453,7 +453,7 @@ class LoanApplicationDocumentListView(generics.ListAPIView):
     def get_queryset(self):
         loan_application_uuid = self.kwargs.get('loan_application_uuid')
         loan_application = get_loan_application(loan_application_uuid, self.request.user) if self.request.user.role != UserRoleChoices.ADMIN.value else get_object_or_404(LoanApplication, loan_application_uuid=loan_application_uuid)
-        qs = get_role_based_queryset(self.request.user, LoanApplicationDocument, self.request.user.role)
+        qs = get_role_based_queryset(self.request.user, LoanApplicationDocument, self.request.user.role, 'uploaded_at')
         return qs.filter(loan_application=loan_application)
 
 

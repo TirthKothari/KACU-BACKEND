@@ -9,16 +9,24 @@ def get_loan_application(uuid, actor):
     return get_object_or_404(LoanApplication, Q(user=actor) | Q(user__partner=actor) | Q(user__assigned_agent=actor), loan_application_uuid=uuid)
 
 
-def get_role_based_queryset(user, model, role):
+def get_role_based_queryset(user, model, role, order_by_field='created_at'):
     """Return a queryset of models filtered based on the user's role."""
+    fallback_field = 'created_at'
+    selected_field = order_by_field if hasattr(model, order_by_field) else fallback_field
+
+    if not hasattr(model, selected_field):
+        selected_field = 'id'
+
+    ordering_field = f'-{selected_field}'
+
     if role == UserRoleChoices.ADMIN.value:
-        return model.objects.all().order_by('-created_at')
+        return model.objects.all().order_by(ordering_field)
     elif role == UserRoleChoices.PARTNER.value:
-        return model.objects.filter(user__partner=user).order_by('-created_at')
+        return model.objects.filter(user__partner=user).order_by(ordering_field)
     elif role == UserRoleChoices.AGENT.value:
-        return model.objects.filter(user__assigned_agent=user).order_by('-created_at')
+        return model.objects.filter(user__assigned_agent=user).order_by(ordering_field)
     elif role == UserRoleChoices.APPLICANT.value:
-        return model.objects.filter(user=user).order_by('-created_at')
+        return model.objects.filter(user=user).order_by(ordering_field)
     else:
         return model.objects.none()
 

@@ -374,7 +374,7 @@ class LoanApplicationNestedSerializer(serializers.ModelSerializer):
     business_information = BusinessInformationSerializer(source='businessinformation', read_only=True)
 
     funding_information = BusinessFundingInformationSerializer(source='businessfundinginformation', read_only=True)
-    owner_information = BusinessOwnerInformationSerializer(source='businessownerinformation_set', read_only=True)
+    owner_information = BusinessOwnerInformationSerializer(source='businessownerinformation_set', many=True, read_only=True)
     terms_and_conditions = TermsAndConditionsSerializer(source='termsandconditions', read_only=True)
     documents = LoanApplicationDocumentSerializer(source='loanapplicationdocument_set', many=True, read_only=True)
 
