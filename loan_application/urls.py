@@ -43,7 +43,7 @@ urlpatterns = [
     path('funding-information/<uuid:loan_application_uuid>/', BusinessFundingInformationRetrieveView.as_view(), name='funding-information-retrieve'),
     path('funding-information/<uuid:loan_application_uuid>/update/', BusinessFundingInformationUpdateView.as_view(), name='funding-information-update'),
     # ── Business Owner Information ────────────────────────────────────────────
-    path('owner-information/create', BusinessOwnerInformationCreateView.as_view(), name='owner-information-create'),
+    path('owner-information/create/', BusinessOwnerInformationCreateView.as_view(), name='owner-information-create'),
     path('owner-information/<uuid:owner_uuid>/', BusinessOwnerInformationRetrieveView.as_view(), name='owner-information-retrieve'),
     path('owner-information/<uuid:owner_uuid>/update/', BusinessOwnerInformationUpdateView.as_view(), name='owner-information-update'),
     # ── Terms and Conditions ──────────────────────────────────────────────────
