@@ -356,7 +356,7 @@ class BusinessOwnerInformationUpdateView(generics.UpdateAPIView):
 
 class TermsAndConditionsCreateView(generics.CreateAPIView):
     """
-    POST /terms-and-conditions/    → submit terms and conditions for a loan application
+    POST /terms-and-conditions/create/    → submit terms and conditions for a loan application
     """
 
     permission_classes = [permissions.IsApplicant]
