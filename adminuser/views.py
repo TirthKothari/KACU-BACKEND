@@ -16,7 +16,7 @@ class AdminUserListView(generics.ListAPIView):
 
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['username', 'first_name', 'last_name', 'email']
-    ordering_fields = ['created_at', 'updated_at', 'role', 'status']
+    ordering_fields = ['created_at', 'updated_at', 'role']
     ordering = ['-created_at']
     serializer_class = AdminUserListSerializer
     permission_classes = [IsAdmin]
