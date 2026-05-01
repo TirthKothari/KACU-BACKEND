@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from applicant.models import User
 from applicant.utils import UserRoleChoices
+from loan_application.models import LoanApplication
 
 
 class AdminUserRelatedSerializer(serializers.ModelSerializer):
@@ -11,8 +12,28 @@ class AdminUserRelatedSerializer(serializers.ModelSerializer):
 
 
 class AdminUserListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "username",
+            "email",
+            "first_name",
+            "last_name",
+            "phone",
+            "role",
+            "is_active",
+            "is_qualified",
+            "assigned_agent",
+            "partner",
+            "reference_code",
+        ]
+
+
+class AdminUserDetailSerializer(serializers.ModelSerializer):
     assigned_agent_details = AdminUserRelatedSerializer(source="assigned_agent", read_only=True)
     partner_details = AdminUserRelatedSerializer(source="partner", read_only=True)
+    applications = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -31,7 +52,14 @@ class AdminUserListSerializer(serializers.ModelSerializer):
             "partner",
             "partner_details",
             "reference_code",
+            "applications",
         ]
+
+    def get_applications(self, obj):
+        from loan_application.serializers import LoanApplicationSerializer
+
+        applications = LoanApplication.objects.filter(user=obj).order_by("-created_at")
+        return LoanApplicationSerializer(applications, many=True).data
 
 
 class AdminUserUpdateSerializer(serializers.ModelSerializer):
