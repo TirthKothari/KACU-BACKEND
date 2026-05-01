@@ -28,7 +28,7 @@ from .helpers import check_loan_application_submitted, check_loan_application_te
 from applicant.utils import UserRoleChoices
 from .helpers import get_role_based_queryset
 from rest_framework.exceptions import ValidationError
-
+from rest_framework import filters
 
 # ─── Loan Application ─────────────────────────────────────────────────────────
 
@@ -40,26 +40,31 @@ class LoanApplicationListView(generics.ListAPIView):
 
     permission_classes = [permissions.IsAuthenticatedWithRole]
     serializer_class = LoanApplicationSerializer
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['user__username', 'user__first_name', 'user__last_name', 'user__email', 'businessinformation__business_legal_name', 'businessinformation__business_dba_name']
+    ordering_fields = ['created_at', 'updated_at', 'status', 'approved_funds', 'submitted_at', 'approved_at', 'rejected_at']
+    ordering = ['-created_at']
 
     def get_queryset(self):
         user = self.request.user
         role = getattr(user, 'role', None)
 
-        return get_role_based_queryset(user, LoanApplication, role)
+        queryset = get_role_based_queryset(user, LoanApplication, role)
 
-        # if role == UserRoleChoices.APPLICANT.value:
-        #     return LoanApplication.objects.filter(user=self.request.user).order_by('-created_at')
+        # Field-based filtering
+        status = self.request.query_params.get('status')
+        if status:
+            queryset = queryset.filter(status=status)
 
-        # elif role == UserRoleChoices.AGENT.value:
-        #     return LoanApplication.objects.filter(user__assigned_agent=self.request.user).order_by('-created_at')
+        loan_type = self.request.query_params.get('loan_type')
+        if loan_type:
+            queryset = queryset.filter(loan_type=loan_type)
 
-        # elif role == UserRoleChoices.PARTNER.value:
-        #     return LoanApplication.objects.filter(user__partner=self.request.user).order_by('-created_at')
+        current_step = self.request.query_params.get('current_step')
+        if current_step:
+            queryset = queryset.filter(current_step=current_step)
 
-        # elif role == UserRoleChoices.ADMIN.value:
-        #     return LoanApplication.objects.all().order_by('-created_at')
-        # else:
-        #     return LoanApplication.objects.none()
+        return queryset
 
 
 class LoanApplicationCreateView(generics.CreateAPIView):
