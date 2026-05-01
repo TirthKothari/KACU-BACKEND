@@ -5,6 +5,7 @@ from api.permissions import IsAdmin
 from applicant.models import User
 from applicant.utils import UserRoleChoices
 from .serializers import AdminUserListSerializer, AdminUserUpdateSerializer
+from rest_framework import filters
 
 
 class AdminUserListView(generics.ListAPIView):
@@ -13,6 +14,10 @@ class AdminUserListView(generics.ListAPIView):
     Supports ?role=AGENT or ?role=APPLICANT.
     """
 
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['username', 'first_name', 'last_name', 'email']
+    ordering_fields = ['created_at', 'updated_at', 'role', 'status']
+    ordering = ['-created_at']
     serializer_class = AdminUserListSerializer
     permission_classes = [IsAdmin]
 
