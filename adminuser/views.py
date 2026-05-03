@@ -16,13 +16,13 @@ class AdminUserListView(generics.ListAPIView):
 
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['username', 'first_name', 'last_name', 'assigned_agent__username', 'partner__username', 'assigned_agent__first_name', 'assigned_agent__last_name', 'partner__first_name', 'partner__last_name']
-    ordering_fields = ['created_at', 'updated_at', 'role']
-    ordering = ['-created_at']
+    ordering_fields = ['date_joined', 'role']
+    ordering = ['-date_joined']
     serializer_class = AdminUserListSerializer
     permission_classes = [IsAdmin]
 
     def get_queryset(self):
-        queryset = User.objects.all().order_by("-id")
+        queryset = User.objects.all().order_by("-date_joined")
         role = self.request.query_params.get("role")
 
         if not role:

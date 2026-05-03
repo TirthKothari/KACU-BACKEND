@@ -14,8 +14,8 @@ class AgentUserListView(generics.ListAPIView):
     permission_classes = [IsAgent]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['username', 'first_name', 'last_name', 'assigned_agent__username', 'partner__username', 'assigned_agent__first_name', 'assigned_agent__last_name', 'partner__first_name', 'partner__last_name']
-    ordering_fields = ['created_at', 'updated_at']
-    ordering = ['-created_at']
+    ordering_fields = ['date_joined', 'role']
+    ordering = ['-date_joined']
 
     def get_queryset(self):
         return User.objects.filter(assigned_agent=self.request.user, role=UserRoleChoices.APPLICANT.value)
