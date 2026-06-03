@@ -11,6 +11,7 @@ from applicant.utils import UserRoleChoices
 from loan_application.models import LoanApplication
 from loan_application.utils import LoanApplicationStatus
 from loan_type.models import LoanType
+from loan_application.serializers import LoanApplicationSerializer
 from .serializers import AdminUserListSerializer, AdminUserUpdateSerializer, AdminUserDetailSerializer
 
 logger = logging.getLogger(__name__)
@@ -107,7 +108,11 @@ class AdminDashboardView(APIView):
                 unspecified_percentage = round((unspecified_count / total_apps * 100), 2) if total_apps > 0 else 0.0
                 loan_type_data.append({"id": None, "name": "Unspecified", "count": unspecified_count, "percentage": unspecified_percentage})
 
-            response_data = {"team": {"clients": clients_count, "agents": agents_count, "partners": partners_count, "admin": admins_count}, "applications": {"total": total_apps, "needs_review": needs_review_apps, "approved": approved_apps, "rejected": rejected_apps, "referred": referred_apps}, "conversion_rate_percent": conversion_rate, "total_funds_approved": total_funds_approved, "referral_rate_percent": referral_rate, "applications_by_loan_type": loan_type_data}
+            # Fetch recent 5 applications
+            recent_apps = LoanApplication.objects.filter(status__in=[LoanApplicationStatus.SUBMITTED.value, LoanApplicationStatus.PENDING.value]).select_related('user', 'loan_type').order_by('-created_at')[:5]
+            recent_apps_serialized = LoanApplicationSerializer(recent_apps, many=True, context={'request': request}).data
+
+            response_data = {"team": {"clients": clients_count, "agents": agents_count, "partners": partners_count, "admin": admins_count}, "applications": {"total": total_apps, "needs_review": needs_review_apps, "approved": approved_apps, "rejected": rejected_apps, "referred": referred_apps}, "conversion_rate_percent": conversion_rate, "total_funds_approved": total_funds_approved, "referral_rate_percent": referral_rate, "applications_by_loan_type": loan_type_data, "recent_applications": recent_apps_serialized}
 
             return Response(response_data, status=status.HTTP_200_OK)
 
