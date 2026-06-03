@@ -3,6 +3,7 @@ from applicant.models import User
 from loan_application.models import LoanApplication
 from applicant.models import pre_qualification
 from applicant.serializers import LoanTypeSerializer
+from loan_application.serializers import LoanApplicationSerializer
 
 
 class RelatedUserSerializer(serializers.ModelSerializer):
@@ -16,6 +17,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     assigned_agent_details = RelatedUserSerializer(source="assigned_agent", read_only=True)
     is_new = serializers.SerializerMethodField(read_only=True)
     prequalification_loan_type_applied_for = serializers.SerializerMethodField(read_only=True)
+    recent_active_loan_application = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
@@ -35,6 +37,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "assigned_agent_details",
             "is_new",
             "prequalification_loan_type_applied_for",
+            "recent_active_loan_application",
         ]
         read_only_fields = [
             "id",
@@ -47,6 +50,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "assigned_agent",
             "partner_details",
             "assigned_agent_details",
+            "recent_active_loan_application",
         ]
 
     def get_is_new(self, obj):
@@ -69,3 +73,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
             validated_data["username"] = email
 
         return super().update(instance, validated_data)
+
+    def get_recent_active_loan_application(self, obj):
+        recent_active_loan_application = LoanApplication.objects.filter(user=obj).order_by("-created_at").first()
+        if recent_active_loan_application:
+            return LoanApplicationSerializer(recent_active_loan_application).data
+        return None
