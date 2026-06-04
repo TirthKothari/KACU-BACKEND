@@ -169,18 +169,17 @@ class InvitationListView(generics.ListAPIView):
     serializer_class = InvitationListSerializer
 
     def get_queryset(self):
-        queryset = InvitedUsers.objects.select_related('invited_by').all().order_by('-created_at')
+        queryset = InvitedUsers.objects.select_related('invited_by').order_by('-created_at')
         status_filter = self.request.query_params.get('status')
-        now = timezone.now()
 
         if status_filter == 'active':
-            queryset = queryset.filter(accepted_at__isnull=True, revoked_at__isnull=True, expires_at__gt=now)
-        elif status_filter == 'expired':
-            queryset = queryset.filter(expires_at__lte=now, accepted_at__isnull=True, revoked_at__isnull=True)
-        elif status_filter == 'accepted':
-            queryset = queryset.filter(accepted_at__isnull=False)
-        elif status_filter == 'revoked':
-            queryset = queryset.filter(revoked_at__isnull=False)
+            return queryset.filter(accepted_at__isnull=True, revoked_at__isnull=True, expires_at__gt=timezone.now())
+        if status_filter == 'expired':
+            return queryset.filter(expires_at__lte=timezone.now(), accepted_at__isnull=True, revoked_at__isnull=True)
+        if status_filter == 'accepted':
+            return queryset.filter(accepted_at__isnull=False)
+        if status_filter == 'revoked':
+            return queryset.filter(revoked_at__isnull=False)
 
         return queryset
 

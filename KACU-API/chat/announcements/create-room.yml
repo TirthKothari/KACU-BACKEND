@@ -1,0 +1,21 @@
+info:
+  name: create-room
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: http://127.0.0.1:8000/api/chat/announcements/create/
+  body:
+    type: json
+    data: |-
+      {
+        "name": "General Announcements"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

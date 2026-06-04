@@ -33,4 +33,5 @@ urlpatterns = [
     path("api/user-profile/", include("userprofile.urls")),
     path("api/admin/", include("adminuser.urls")),
     path("api/agent/", include("agentuser.urls")),
+    path("api/chat/", include("chat.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
