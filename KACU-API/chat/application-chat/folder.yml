@@ -1,0 +1,7 @@
+info:
+  name: application-chat
+  type: folder
+  seq: 2
+
+request:
+  auth: inherit
