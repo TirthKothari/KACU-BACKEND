@@ -1,0 +1,25 @@
+info:
+  name: update-user
+  type: http
+  seq: 3
+
+http:
+  method: PATCH
+  url: http://127.0.0.1:8000/api/admin/users/1/
+  body:
+    type: json
+    data: |-
+      {
+        "first_name": "UpdatedName",
+        "last_name": "UpdatedLastName",
+        "phone": "+14155552671",
+        "assigned_agent": 2,
+        "is_active": true
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
