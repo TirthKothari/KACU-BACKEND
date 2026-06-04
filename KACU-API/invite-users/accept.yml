@@ -1,0 +1,27 @@
+info:
+  name: accept
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: http://127.0.0.1:8000/api/invite-users/accept/
+  body:
+    type: json
+    data: |-
+      {
+        "token": "YOUR_TOKEN_HERE",
+        "username": "invited_user_username",
+        "email": "invited.user@example.com",
+        "phone": "+14155552671",
+        "password": "SecurePassword123!",
+        "first_name": "Invited",
+        "last_name": "User"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
