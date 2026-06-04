@@ -1,0 +1,30 @@
+info:
+  name: create
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://127.0.0.1:8000/api/loan-type/create/
+  body:
+    type: json
+    data: "{\r
+
+      \"name\": \"Working Capital Loan\",\r
+
+      \"rates\": 12.5,\r
+
+      \"decision_time\": \"24-48 hours\",\r
+
+      \"amount\": \"$10,000 - $100,000\",\r
+
+      \"description\": \"Short-term funding for operational expenses\"\r
+
+      }"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

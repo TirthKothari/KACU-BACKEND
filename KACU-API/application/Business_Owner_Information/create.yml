@@ -1,0 +1,48 @@
+info:
+  name: create
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://kacu-backend.onrender.com/api/application/owner-information/create/
+  body:
+    type: json
+    data: "{\r
+
+      \  \"loan_application_uuid\": \"e290d395-0c74-4bd6-938c-a55c74b4aafd\",\r
+
+      \  \"owner_first_name\": \"Raju\",\r
+
+      \  \"owner_last_name\": \"Doeu\",\r
+
+      \  \"owner_email\": \"Raju.doeu@example.com\",\r
+
+      \  \"owner_phone_number\": \"+14155552671\",\r
+
+      \  \"owner_date_of_birth\": \"1988-04-12\",\r
+
+      \  \"owner_ssn\": \"123-45-6789\",\r
+
+      \  \"owner_address\": \"123 Main St\",\r
+
+      \  \"owner_city\": \"San Francisco\",\r
+
+      \  \"owner_state\": \"California\",\r
+
+      \  \"owner_zip_code\": \"94105\",\r
+
+      \  \"owner_country\": \"USA\",\r
+
+      \  \"owner_percentage_of_ownership\": \"40.00\",\r
+
+      \  \"owner_credit_score\": 720\r
+
+      }"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

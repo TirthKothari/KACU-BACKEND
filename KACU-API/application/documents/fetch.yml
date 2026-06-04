@@ -1,0 +1,15 @@
+info:
+  name: fetch
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: http://127.0.0.1:8000/api/application/documents/d3380f98-3629-42ae-85d4-1fadf890455b/
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

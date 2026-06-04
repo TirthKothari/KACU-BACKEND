@@ -1,0 +1,31 @@
+info:
+  name: create
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://kacu-backend.onrender.com/api/application/terms-and-conditions/create/
+  body:
+    type: multipart-form
+    data:
+      - name: loan_application_uuid
+        type: text
+        value: e290d395-0c74-4bd6-938c-a55c74b4aafd
+      - name: signature_name
+        type: text
+        value: John Doe
+      - name: terms_accepted
+        type: text
+        value: "true"
+      - name: signature_image
+        type: file
+        value:
+          - c:\Users\Tirth Kothari\Pictures\pic4.png
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

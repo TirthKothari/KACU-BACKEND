@@ -1,0 +1,28 @@
+info:
+  name: decision
+  type: http
+  seq: 5
+
+http:
+  method: PATCH
+  url: http://127.0.0.1:8000/api/application/abe82927-402c-4d97-9a12-2f4396da2d42/decision/
+  body:
+    type: json
+    data: "{\r
+
+      \"status\": \"approved\",\r
+
+      \"approved_funds\": \"50000.00\",\r
+
+      \"partner_commision\": \"2500.00\",\r
+
+      \"rejection_reason\": \"Insufficient business cash flow history.\",\r
+
+      }"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

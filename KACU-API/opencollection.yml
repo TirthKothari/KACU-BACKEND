@@ -1,0 +1,17 @@
+opencollection: 1.0.0
+
+info:
+  name: KACU-API
+
+request:
+  auth:
+    type: apikey
+    key: Authorization
+    value: Token 5b8458b0c71c99d40f6c6bb471d1df2a117447c4
+    placement: header
+bundled: false
+extensions:
+  bruno:
+    ignore:
+      - node_modules
+      - .git

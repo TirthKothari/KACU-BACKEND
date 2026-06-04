@@ -1,0 +1,44 @@
+info:
+  name: create
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://127.0.0.1:8000/api/applicant/prequalification/create/
+  body:
+    type: json
+    data: "{\r
+
+      \"business_name\": \"Acme Logistics LLC\",\r
+
+      \"loan_amount\": \"OPTION_4\",\r
+
+      \"loan_type\": 4,\r
+
+      \"loan_term\": \"TERM_5\",\r
+
+      \"business_location\": \"USA\",\r
+
+      \"years_in_business\": \"TERM_4\",\r
+
+      \"annual_revenue\": 42000,\r
+
+      \"name\": \"John Doe\",\r
+
+      \"email\": \"john.doe@example.com\",\r
+
+      \"phone\": \"+14155552671\",\r
+
+      \"partner\": null,\r
+
+      \"refernce_code\": null\r
+
+      }"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

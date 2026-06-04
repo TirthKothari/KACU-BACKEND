@@ -1,0 +1,52 @@
+info:
+  name: update
+  type: http
+  seq: 3
+
+http:
+  method: PATCH
+  url: http://127.0.0.1:8000/api/application/funding-information/abe82927-402c-4d97-9a12-2f4396da2d42/update/
+  body:
+    type: json
+    data: "{\r
+
+      \  \"loan_amount_requested\": \"50000.00\",\r
+
+      \  \"loan_purpose\": \"Working capital and inventory expansion\",\r
+
+      \  \"loan_term_requested\": \"24 months\",\r
+
+      \  \"overdraft_protection\": true,\r
+
+      \  \"overdraft_protection_limit\": \"10000.00\",\r
+
+      \  \"business_existing_loan\": true,\r
+
+      \  \"business_lender_details\": [\r
+
+      \    {\r
+
+      \      \"lender_name\": \"ABC\",\r
+
+      \      \"balance\": \"12000.50\"\r
+
+      \    },\r
+
+      \    {\r
+
+      \      \"lender_name\": \"XYZ Capital\",\r
+
+      \      \"balance\": \"8000.00\"\r
+
+      \    }\r
+
+      \  ]\r
+
+      }"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

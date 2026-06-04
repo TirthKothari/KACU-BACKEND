@@ -1,0 +1,28 @@
+info:
+  name: create
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://kacu-backend.onrender.com/api/application/documents/create/
+  body:
+    type: multipart-form
+    data:
+      - name: document_name
+        type: text
+        value: bank_statement
+      - name: document_file
+        type: file
+        value:
+          - c:\Users\Tirth Kothari\Pictures\WATER.jpg
+      - name: loan_application_uuid
+        type: text
+        value: e290d395-0c74-4bd6-938c-a55c74b4aafd
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

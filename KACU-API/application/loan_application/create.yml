@@ -1,0 +1,18 @@
+info:
+  name: create
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://kacu-backend.onrender.com/api/application/create/
+  body:
+    type: json
+    data: "{\r\n\"loan_type\": 4\r\n}"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
