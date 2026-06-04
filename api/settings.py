@@ -219,11 +219,15 @@ REST_FRAMEWORK = {
 }
 
 INVITE_LINK_EXPIRY_HOURS = 48
-FRONTEND_INVITE_ACCEPT_URL = os.getenv("FRONTEND_INVITE_ACCEPT_URL", "http://localhost:5173/") + "invite/accept"
+FRONTEND_HOST = os.getenv("FRONTEND_HOST", "http://localhost:5173")
+FRONTEND_INVITE_ACCEPT_URL = FRONTEND_HOST + "/invite/accept"
 INVITE_BUSINESS_NAME = os.getenv("INVITE_BUSINESS_NAME", "KACU")
 BREVO_API_KEY = os.getenv("BREVO_API_KEY")
 BREVO_SENDER_NAME = os.getenv("BREVO_SENDER_NAME", "KACU")
 BREVO_SENDER_EMAIL = os.getenv("BREVO_SENDER_EMAIL", "info@kacu.ca")
+JWT_KEY = os.getenv("JWT_TOKEN")
+JWT_ALGORITHM = "HS256"
+JWT_TOKEN_EXPIRY_HOURS = os.getenv("JWT_TOKEN_EXPIRY_HOURS", 24)
 
 # LOGS_DIR = BASE_DIR / "logs"
 # os.makedirs(LOGS_DIR, exist_ok=True)

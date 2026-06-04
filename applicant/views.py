@@ -65,7 +65,11 @@ class CreatePrequalification(APIView):
                 instance = serializer.save(is_qualified=is_qualified)
                 logger.info(f"Prequalification form submitted successfully with UUID: {instance.uuid}, is_qualified: {is_qualified}")
 
-                return Response({'success': True, 'message': 'Prequalification form submitted successfully', 'form_uuid': str(instance.uuid), 'data': serializer.data}, status=status.HTTP_201_CREATED)
+                from .helpers import generate_registration_jwt
+
+                token = generate_registration_jwt(instance.email, instance.uuid)
+
+                return Response({'success': True, 'message': 'Prequalification form submitted successfully', 'form_uuid': str(instance.uuid), 'token': token, 'data': serializer.data}, status=status.HTTP_201_CREATED)
             else:
                 logger.warning("Prequalification form data validation failed.")
                 return Response({'success': False, 'message': 'Validation failed', 'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
@@ -148,6 +152,74 @@ class GetPrequalification(generics.RetrieveAPIView):
     lookup_field = 'uuid'
 
 
+class SendRegistrationEmail(APIView):
+    """
+    API endpoint to send a registration link email to the applicant.
+    Uses JWT tokens for secure registration verification.
+    """
+
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        try:
+            logger.info("Received request to send registration email.")
+            email = request.data.get('email')
+
+            if not email:
+                logger.warning("Email parameter is missing.")
+                return Response({'success': False, 'message': 'Email is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Check if prequalification exists
+            prequal = pre_qualification.objects.filter(email=email).first()
+
+            if not prequal:
+                logger.warning(f"No prequalification found for email: {email}")
+                return Response({'success': False, 'message': 'Please apply for prequalification'}, status=status.HTTP_404_NOT_FOUND)
+
+            # Check if user is already associated
+            if prequal.user is not None:
+                logger.warning(f"An account already exists with this email: {email}")
+                return Response({'success': False, 'message': 'An account already exists with this email. Please login.'}, status=status.HTTP_409_CONFLICT)
+
+            # Generate JWT token
+            from .helpers import generate_registration_jwt
+
+            token = generate_registration_jwt(prequal.email, prequal.uuid)
+
+            # Send Email
+            from api.helpers import send_email_html_brevo
+
+            frontend_base = getattr(settings, 'FRONTEND_HOST', 'http://localhost:5173/register')
+            register_link = f"{frontend_base}/register?token={token}"
+            recipient_name = prequal.name or email.split('@')[0]
+            business_name = getattr(settings, 'INVITE_BUSINESS_NAME', 'KACU')
+
+            email_success, email_message = send_email_html_brevo(
+                to_email=email,
+                to_name=recipient_name,
+                template_name="applicant-register.html",
+                context={
+                    "params": {
+                        "RecipientName": recipient_name,
+                        "BusinessName": business_name,
+                        "Link": register_link,
+                    }
+                },
+                subject="Complete your registration",
+            )
+
+            if email_success:
+                logger.info(f"Registration email sent successfully to {email}")
+                return Response({'success': True, 'message': 'Registration email sent successfully'}, status=status.HTTP_200_OK)
+            else:
+                logger.error(f"Failed to send registration email to {email}: {email_message}")
+                return Response({'success': False, 'message': f'Failed to send email: {email_message}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        except Exception as e:
+            logger.error(f"Error sending registration email: {str(e)}", exc_info=True)
+            return Response({'success': False, 'message': 'An error occurred while processing your request', 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 class ApplicantUserRegistration(APIView):
     """
     API endpoint to register a new user and associate them with a prequalification form.
@@ -170,7 +242,7 @@ class ApplicantUserRegistration(APIView):
             try:
                 with transaction.atomic():
                     # Get and update prequalification form
-                    prequalification_form = pre_qualification.objects.get(uuid=validated_data['prequalification_form_uuid'])
+                    prequalification_form = pre_qualification.objects.get(email=validated_data['email'])
 
                     if prequalification_form.user is not None:
                         logger.warning(f"Prequalification form {prequalification_form.uuid} already has a user assigned.")
