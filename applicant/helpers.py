@@ -49,3 +49,37 @@ def assign_agent_round_robin(applicant_user):
         state.save(update_fields=['last_assigned_agent', 'updated_at'])
 
         return selected_agent
+
+
+def generate_registration_jwt(email, prequalification_uuid):
+    """
+    Generate a JWT token for applicant registration.
+    """
+    import jwt
+    import datetime
+    from django.conf import settings
+
+    payload = {'email': email, 'prequalification_uuid': str(prequalification_uuid), 'exp': datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=getattr(settings, "JWT_TOKEN_EXPIRY_HOURS"))}
+    key = getattr(settings, "JWT_KEY")
+    token = jwt.encode(payload, key, algorithm=getattr(settings, "JWT_ALGORITHM"))
+    if isinstance(token, bytes):
+        token = token.decode('utf-8')
+    return token
+
+
+def verify_registration_jwt(token, email):
+    """
+    Decode and verify applicant registration JWT token.
+    """
+    import jwt
+    from django.conf import settings
+
+    try:
+        payload = jwt.decode(token, getattr(settings, "JWT_KEY"), algorithms=[getattr(settings, "JWT_ALGORITHM")])
+        if payload.get('email') != email:
+            return False, "Email does not match the token payload."
+        return True, "Token is valid"
+    except jwt.ExpiredSignatureError:
+        return False, "The registration link has expired."
+    except jwt.InvalidTokenError:
+        return False, "Invalid registration token."

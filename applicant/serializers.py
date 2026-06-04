@@ -29,7 +29,8 @@ class UserRegistrationSerializer(serializers.Serializer):
     phone = serializers.CharField(max_length=20, required=True)
     role = serializers.CharField(max_length=50, required=False)
     is_qualified = serializers.BooleanField(required=False)
-    prequalification_form_uuid = serializers.UUIDField(required=True)
+    # prequalification_form_uuid = serializers.UUIDField(required=True)
+    token = serializers.CharField(required=True)
 
     def validate_email(self, value):
         if User.objects.filter(email=value).exists():
@@ -50,7 +51,23 @@ class UserRegistrationSerializer(serializers.Serializer):
             raise serializers.ValidationError(list(e.messages))
         return value
 
-    def validate_prequalification_form_uuid(self, value):
-        if not pre_qualification.objects.filter(uuid=value).exists():
-            raise serializers.ValidationError("Prequalification form with this UUID does not exist.")
-        return value
+    # def validate_prequalification_form_uuid(self, value):
+    #     form = pre_qualification.objects.filter(uuid=value).first()
+    #     if form is None:
+    #         raise serializers.ValidationError("Prequalification form with this UUID does not exist.")
+    #     if form.user is not None:
+    #         raise serializers.ValidationError("Prequalification form with this UUID is already associated with a user.")
+    #     return value
+
+    def validate(self, attrs):
+        # prequalification_form_uuid = attrs.get('prequalification_form_uuid')
+        token = attrs.get('token')
+        email = attrs.get('email')
+
+        from .helpers import verify_registration_jwt
+
+        is_valid, message = verify_registration_jwt(token, email)
+        if not is_valid:
+            raise serializers.ValidationError({"token": message})
+
+        return attrs
