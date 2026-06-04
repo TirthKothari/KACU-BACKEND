@@ -1,0 +1,32 @@
+info:
+  name: Register
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://127.0.0.1:8000/api/applicant/register/
+  body:
+    type: json
+    data: "{\r
+
+      \  \"first_name\": \"John\",\r
+
+      \  \"last_name\": \"Doe\",\r
+
+      \  \"email\": \"john.doe@example.com\",\r
+
+      \  \"password\": \"pass@123\",\r
+
+      \  \"phone\": \"+14155552671\",\r
+
+      \  \"prequalification_form_uuid\": \"0e03d1e6-b60f-4dc0-a3ab-580cc42400e1\"\r
+
+      }"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,58 @@
+info:
+  name: create
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: https://kacu-backend.onrender.com/api/application/business-information/create/
+  body:
+    type: json
+    data: "{\r
+
+      \  \"loan_application_uuid\": \"e290d395-0c74-4bd6-938c-a55c74b4aafd\",\r
+
+      \  \"is_dba\": true,\r
+
+      \  \"business_legal_name\": \"Acme Logistics LLC\",\r
+
+      \  \"business_dba_name\": \"Acme Transport\",\r
+
+      \  \"business_email\": \"ops@acmelogistics.com\",\r
+
+      \  \"business_phone_number\": \"+14155552671\",\r
+
+      \  \"business_website\": \"https://acmelogistics.com\",\r
+
+      \  \"business_country\": \"USA\",\r
+
+      \  \"business_state\": \"California\",\r
+
+      \  \"business_address\": \"123 Market Street, Suite 500\",\r
+
+      \  \"business_city\": \"San Francisco\",\r
+
+      \  \"business_zip_code\": \"94105\",\r
+
+      \  \"business_industry_type\": \"Logistics\",\r
+
+      \  \"business_legal_entity_type\": \"llc\",\r
+
+      \  \"business_length_of_ownership\": \"3 years\",\r
+
+      \  \"business_number\": \"123456789\",\r
+
+      \  \"business_estimated_start_date\": \"2021-06-15\",\r
+
+      \  \"business_province_of_incorporation\": \"California\",\r
+
+      \  \"business_average_gross_monthly_sales\": \"25000.00\"\r
+
+      }"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

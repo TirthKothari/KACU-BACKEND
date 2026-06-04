@@ -1,0 +1,15 @@
+info:
+  name: update
+  type: http
+  seq: 4
+
+http:
+  method: PUT
+  url: http://127.0.0.1:8000/api/applicant/prequalification/0e03d1e6-b60f-4dc0-a3ab-580cc42400e1/update/
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

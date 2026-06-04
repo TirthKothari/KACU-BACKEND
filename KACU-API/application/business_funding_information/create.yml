@@ -1,0 +1,54 @@
+info:
+  name: create
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://kacu-backend.onrender.com/api/application/funding-information/create/
+  body:
+    type: json
+    data: "{\r
+
+      \  \"loan_application_uuid\": \"e290d395-0c74-4bd6-938c-a55c74b4aafd\",\r
+
+      \  \"loan_amount_requested\": \"50000.00\",\r
+
+      \  \"loan_purpose\": \"Working capital and inventory expansion\",\r
+
+      \  \"loan_term_requested\": \"24 months\",\r
+
+      \  \"overdraft_protection\": true,\r
+
+      \  \"overdraft_protection_limit\": \"10000.00\",\r
+
+      \  \"business_existing_loan\": true,\r
+
+      \  \"business_lender_details\": [\r
+
+      \    {\r
+
+      \      \"lender_name\": \"ABC Finance\",\r
+
+      \      \"balance\": \"12000.50\"\r
+
+      \    },\r
+
+      \    {\r
+
+      \      \"lender_name\": \"XYZ Capital\",\r
+
+      \      \"balance\": \"8000.00\"\r
+
+      \    }\r
+
+      \  ]\r
+
+      }"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

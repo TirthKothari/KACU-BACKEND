@@ -1,0 +1,22 @@
+info:
+  name: update
+  type: http
+  seq: 3
+
+http:
+  method: PATCH
+  url: http://127.0.0.1:8000/api/application/documents/d3380f98-3629-42ae-85d4-1fadf890455b/update/
+  body:
+    type: multipart-form
+    data:
+      - name: document_file
+        type: file
+        value:
+          - c:\Users\Tirth Kothari\Pictures\ayushman2.png
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
